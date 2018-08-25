@@ -1,0 +1,22 @@
+* {
+    font-family: monospace;
+    font-size: 1rem;
+    color: aquamarine;
+}
+p {
+    color: aquamarine;
+}
+body {
+    background-color: black;
+}
+pre {
+    color: aquamarine;
+}
+input {
+    width: 100%;
+    background-color: black;
+    outline: none;
+    border-style: none;
+    caret-color: aquamarine;
+    color: aquamarine;
+}
