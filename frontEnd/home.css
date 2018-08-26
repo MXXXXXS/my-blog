@@ -1,22 +1,25 @@
 * {
-    font-family: monospace;
-    font-size: 1rem;
-    color: aquamarine;
+  font-family: monospace;
+  color: aquamarine;
 }
+
 p {
-    color: aquamarine;
+  color: aquamarine;
 }
+
 body {
-    background-color: black;
+  background-color: black;
 }
+
 pre {
-    color: aquamarine;
+  color: aquamarine;
 }
+
 input {
-    width: 100%;
-    background-color: black;
-    outline: none;
-    border-style: none;
-    caret-color: aquamarine;
-    color: aquamarine;
+  width: 100%;
+  background-color: black;
+  outline: none;
+  border-style: none;
+  caret-color: aquamarine;
+  color: aquamarine;
 }
