@@ -1,0 +1,84 @@
+html,
+body,
+#editor {
+  margin: 0;
+  height: 100%;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #333;
+}
+
+textarea,
+#preview {
+  display: inline-block;
+  width: 49%;
+  height: 100%;
+  vertical-align: top;
+  box-sizing: border-box;
+  padding: 0 20px;
+}
+
+textarea {
+  border: none;
+  border-right: 1px solid #ccc;
+  resize: none;
+  outline: none;
+  background-color: #f6f6f6;
+  font-size: 14px;
+  font-family: 'Monaco', courier, monospace;
+  padding: 20px;
+}
+
+code {
+  color: #f66;
+}
+
+.toolbar {
+  display: flex;
+  width: 100%;
+}
+
+input,
+input::placeholder {
+  text-align: center
+}
+
+input {
+  border: none;
+  padding: 0;
+  outline: none;
+  height: 9vh;
+  width: 49%;
+  min-width: 49%;
+}
+
+button {
+  width: 80px;
+  padding: 5px;
+  height: 9vh;
+  border: none;
+}
+
+.pics {
+  width: calc(51% - 80px);
+  max-width: calc(51% - 80px);
+  height: 9vh;
+  background-color: #ccc;
+  display: flex;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+input,
+button,
+.pics {
+  min-height: 70px;
+}
+
+.active {
+  background-color: rgb(235, 235, 235);
+}
+
+img {
+  height: 9vh;
+  min-height: 70px;
+}
