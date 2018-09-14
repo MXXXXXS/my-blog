@@ -1,6 +1,5 @@
-window.onload = () => {
   Vue.component('update-button', {
-    props: ['sotitle', 'content'],
+    props: ['articleTitle', 'content'],
     data: function () {
       return {
         state: '上传'
@@ -11,7 +10,7 @@ window.onload = () => {
         let jwt = localStorage.getItem('jwt')
         if (jwt) {
           this.state = '上传中'
-          // console.log(this.sotitle + '\n' + this.content)
+          // console.log(this.articleTitle + '\n' + this.content)
           function resHandler(responseText) {
             responseText == 'successed' ? this.state = '已上传' : console.error(responseText)
           }
@@ -22,7 +21,7 @@ window.onload = () => {
               let percent = Math.round(e.loaded / e.total * 100)
               this.progress = - 100 + percent
             } else {
-              console.log('无法获取上传进度');
+              console.log('无法获取上传进度')
 
             }
           })
@@ -31,7 +30,7 @@ window.onload = () => {
               resHandler(xhr.responseText)
             }
           }
-          xhr.open('POST', '/addArticle/' + this.sotitle)
+          xhr.open('POST', '/addArticle/' + this.articleTitle)
           xhr.setRequestHeader('Content-Type', 'text/plain')
           xhr.setRequestHeader('Authorization', 'Bearer ' + jwt)
           xhr.send(this.content)
@@ -40,22 +39,96 @@ window.onload = () => {
         }
       }
     },
-    template: '<button v-on:click="update">{{state}}</button>'
+    template: '<button @click="update">{{state}}</button>'
   })
-  let vm = new Vue({
+  Vue.component('my-gallery', {
+    data: function () {
+      return {
+        picsList: {},
+        isActive: false,
+        imgsOffset: {
+          left: 0,
+          lastLeft: 0,
+          dragable: false,
+          mouseX: 0
+        }
+      }
+    },
+    computed: {
+      livingImgs: function () {
+        return this.picsList
+      }
+    },
+    methods: {
+      delImg: function (e) {
+        // this.picsList[e.target.alt].live = false
+        window.URL.revokeObjectURL(e.target.src)
+        // delete this.picsList[e.target.alt]
+        Vue.delete(this.picsList, e.target.alt)
+      },
+      initX: function (e) {
+        this.imgsOffset.lastLeft = this.imgsOffset.left
+        this.imgsOffset.mouseX = e.screenX
+        this.imgsOffset.dragable = true
+      },
+      moveX: function (e) {
+        if (this.imgsOffset.dragable) {
+          this.imgsOffset.left =
+            this.imgsOffset.lastLeft + e.screenX - this.imgsOffset.mouseX
+        }
+      },
+      endX: function (e) {
+        this.imgsOffset.dragable = false
+      },
+      dragOver: function (e) {
+        this.isActive = true
+      },
+      dragLeave: function (e) {
+        this.isActive = false
+      },
+      addImg: function (e) {
+        //   //使用dataurl
+        //   // let files = e.dataTransfer.files
+        //   // for (let i = 0; i < files.length; i++) {
+        //   //   if (!files[i].type.match('image.*')) {
+        //   //     continue;
+        //   //   }
+        //   //   let reader = new FileReader()
+        //   //   reader.onprogress = e => {
+        //   //     if (e.lengthComputable) {
+        //   //       let percent = Math.round(e.loaded / e.total * 100)
+        //   //         this.progress = - 100 + percent
+        //   //     }
+        //   //   }
+        //   //   reader.onload = e => {
+        //   //     this.progress = -100
+        //   // this.picsList[files[i].name] ={ src: window.URL.createObjectURL(files[i]), live: true }
+        //   //   }
+        //   //   reader.readAsDataURL(files[i])
+        //   // }
+        //使用objecturl
+        let files = e.dataTransfer.files
+        for (let i = 0; i < files.length; i++) {
+          if (!files[i].type.match('image.*')) {
+            continue
+          }
+          this.picsList[files[i].name] = { src: window.URL.createObjectURL(files[i]) }
+        }
+        this.isActive = false
+      }
+    },
+    template: `
+      <div class="pics" :class="{ active: isActive }" @mousedown="initX" @mousemove="moveX" @mouseup="endX" @mouseleave="endX">
+        <div class="imgs" :style="{ left: imgsOffset.left + 'px'}" @dragover.prevent="dragOver" @dragleave.prevent="dragLeave" @drop.prevent="addImg">
+          <img class="gallery" v-for="(info, name) in picsList" :key="name" :alt="name" :src="info.src"  @dblclick="delImg" />
+        </div>
+      </div>`
+  })
+  new Vue({
     el: '#editor',
     data: {
       title: '',
       input: '# hello',
-      width: 0,
-      picsList: {},
-      isActive: false,
-      imgsOffset: {
-        left: 0,
-        lastLeft: 0,
-        dragable: false,
-        mouseX: 0
-      },
       progress: -100
     },
     computed: {
@@ -67,77 +140,8 @@ window.onload = () => {
       update: _.debounce(function (e) {
         this.input = e.target.value
       }, 300),
-      initX: function (e) {
-        console.log('left mousedown');
-        this.imgsOffset.lastLeft = this.imgsOffset.left
-        this.imgsOffset.mouseX = e.screenX
-        this.imgsOffset.dragable = true
-        console.log(this.width);
-
-      },
-      moveX: function (e) {
-
-        if (this.imgsOffset.dragable) {
-          this.imgsOffset.left = this.imgsOffset.lastLeft + e.screenX - this.imgsOffset.mouseX
-        }
-      },
-      endX: function (e) {
-        console.log('mousedup, or leave');
-        this.imgsOffset.dragable = false
-      },
-      dragOver: function (e) {
-        this.isActive = true
-      },
-      dragLeave: function (e) {
-        this.isActive = false
-      },
-      addImg: function (e) {
-
-
-        //使用dataurl
-        // let files = e.dataTransfer.files
-        // for (let i = 0; i < files.length; i++) {
-        //   if (!files[i].type.match('image.*')) {
-        //     continue;
-        //   }
-        //   let reader = new FileReader()
-        //   reader.onprogress = e => {
-        //     if (e.lengthComputable) {
-        //       let percent = Math.round(e.loaded / e.total * 100)
-        //         this.progress = - 100 + percent
-        //     }
-        //   }
-        //   reader.onload = e => {
-        //     this.progress = -100
-        // this.picsList[files[i].name] ={ src: window.URL.createObjectURL(files[i]), live: true }
-        //   }
-        //   reader.readAsDataURL(files[i])
-        // }
-
-        //使用objecturl
-        let files = e.dataTransfer.files
-        for (let i = 0; i < files.length; i++) {
-          if (!files[i].type.match('image.*')) {
-            continue;
-          }
-          this.picsList[files[i].name] = { src: window.URL.createObjectURL(files[i]), live: true }
-          console.log(this.picsList[files[i].name]);
-
-        }
-
-        this.isActive = false
-      },
       img2md: function (e) {
-        console.log(e.target.tagName)
         this.input += `\n\n![Alt ${e.target.alt}](${e.target.src})\n\n`
-        window.URL.revokeObjectURL(e.target.src)
-      },
-      delImg: function (e) {
-        console.log('db clicked')
-        window.URL.revokeObjectURL(e.target.src)
-        this.picsList[e.target.alt].live = false
-        // e.target.style.width = '0'
       }
     }
   })
-}
