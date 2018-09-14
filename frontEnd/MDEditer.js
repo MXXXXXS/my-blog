@@ -12,16 +12,26 @@ window.onload = () => {
         if (jwt) {
           this.state = '上传中'
           // console.log(this.sotitle + '\n' + this.content)
-          function cb(responseText) {
+          function resHandler(responseText) {
             responseText == 'successed' ? this.state = '已上传' : console.error(responseText)
           }
           let xhr = new XMLHttpRequest
-          xhr.open('POST', '/addArticle/' + this.sotitle)
+          xhr.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              //处理文章上传的进度
+              let percent = Math.round(e.loaded / e.total * 100)
+              this.progress = - 100 + percent
+            } else {
+              console.log('无法获取上传进度');
+
+            }
+          })
           xhr.onreadystatechange = () => {
             if (xhr.readyState == 4 && xhr.status == 200) {
-              cb(xhr.responseText)
+              resHandler(xhr.responseText)
             }
           }
+          xhr.open('POST', '/addArticle/' + this.sotitle)
           xhr.setRequestHeader('Content-Type', 'text/plain')
           xhr.setRequestHeader('Authorization', 'Bearer ' + jwt)
           xhr.send(this.content)
@@ -32,13 +42,21 @@ window.onload = () => {
     },
     template: '<button v-on:click="update">{{state}}</button>'
   })
-  new Vue({
+  let vm = new Vue({
     el: '#editor',
     data: {
       title: '',
       input: '# hello',
-      picsList: [],
-      isActive: false
+      width: 0,
+      picsList: {},
+      isActive: false,
+      imgsOffset: {
+        left: 0,
+        lastLeft: 0,
+        dragable: false,
+        mouseX: 0
+      },
+      progress: -100
     },
     computed: {
       compiledMarkdown: function () {
@@ -49,25 +67,76 @@ window.onload = () => {
       update: _.debounce(function (e) {
         this.input = e.target.value
       }, 300),
-      dragOver: function(e) {
+      initX: function (e) {
+        console.log('left mousedown');
+        this.imgsOffset.lastLeft = this.imgsOffset.left
+        this.imgsOffset.mouseX = e.screenX
+        this.imgsOffset.dragable = true
+        console.log(this.width);
+
+      },
+      moveX: function (e) {
+
+        if (this.imgsOffset.dragable) {
+          this.imgsOffset.left = this.imgsOffset.lastLeft + e.screenX - this.imgsOffset.mouseX
+        }
+      },
+      endX: function (e) {
+        console.log('mousedup, or leave');
+        this.imgsOffset.dragable = false
+      },
+      dragOver: function (e) {
         this.isActive = true
       },
-      dragLeave: function(e) {
+      dragLeave: function (e) {
         this.isActive = false
       },
-      addPics: function (e) {
+      addImg: function (e) {
+
+
+        //使用dataurl
+        // let files = e.dataTransfer.files
+        // for (let i = 0; i < files.length; i++) {
+        //   if (!files[i].type.match('image.*')) {
+        //     continue;
+        //   }
+        //   let reader = new FileReader()
+        //   reader.onprogress = e => {
+        //     if (e.lengthComputable) {
+        //       let percent = Math.round(e.loaded / e.total * 100)
+        //         this.progress = - 100 + percent
+        //     }
+        //   }
+        //   reader.onload = e => {
+        //     this.progress = -100
+        // this.picsList[files[i].name] ={ src: window.URL.createObjectURL(files[i]), live: true }
+        //   }
+        //   reader.readAsDataURL(files[i])
+        // }
+
+        //使用objecturl
         let files = e.dataTransfer.files
         for (let i = 0; i < files.length; i++) {
           if (!files[i].type.match('image.*')) {
             continue;
           }
-          let reader = new FileReader()
-          reader.onload = e => {
-            this.picsList.push({name: files[i].name, dataURL: e.target.result})
-          }
-          reader.readAsDataURL(files[i])
+          this.picsList[files[i].name] = { src: window.URL.createObjectURL(files[i]), live: true }
+          console.log(this.picsList[files[i].name]);
+
         }
+
         this.isActive = false
+      },
+      img2md: function (e) {
+        console.log(e.target.tagName)
+        this.input += `\n\n![Alt ${e.target.alt}](${e.target.src})\n\n`
+        window.URL.revokeObjectURL(e.target.src)
+      },
+      delImg: function (e) {
+        console.log('db clicked')
+        window.URL.revokeObjectURL(e.target.src)
+        this.picsList[e.target.alt].live = false
+        // e.target.style.width = '0'
       }
     }
   })

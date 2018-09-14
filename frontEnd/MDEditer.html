@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="MDEditer.css">
   <script src="https://cdn.staticfile.org/marked/0.5.0/marked.min.js"></script>
   <script src="https://cdn.staticfile.org/lodash.js/4.17.10/lodash.min.js"></script>
-  <script src="https://cdn.staticfile.org/vue/2.5.17-beta.0/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
   <script src="MDEditer.js"></script>
 </head>
 
@@ -18,10 +18,14 @@
     <div class="toolbar">
       <input type="text" v-model="title" placeholder="输入标题">
       <update-button :sotitle="title" :content="input"></update-button>
-      <div class="pics" :class="{ active: isActive }" @dragover.stop.prevent="dragOver" @dragleave.stop.prevent="dragLeave" @drop.stop.prevent="addPics">
-        <img v-for="pic in picsList" :alt="pic" :src="pic.dataURL" />
+      <div class="pics" :class="{ active: isActive }" @mousedown.prevent="initX" @mousemove.prevent="moveX" @mouseup.prevent="endX"
+        @mouseleave.prevent="endX" @dragover.stop.prevent="dragOver" @dragleave.stop.prevent="dragLeave" @drop.stop.prevent="addImg">
+        <div class="imgs" :style="{ left: imgsOffset.left + 'px', width: width + 'px'}">
+          <img :name = "info.live" class="gallery" v-if="info.live" v-for="(info, name) in picsList" :alt="name" :src="info.src" @click.right.prevent="img2md" @dblclick="delImg" />
+        </div>
       </div>
     </div>
+    <div class="progress" :style="{ left: progress + '%' }"></div>
     <textarea :value="input" @input="update"></textarea>
     <div id="preview" v-html="compiledMarkdown"></div>
   </div>

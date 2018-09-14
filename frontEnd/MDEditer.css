@@ -11,7 +11,7 @@ textarea,
 #preview {
   display: inline-block;
   width: 49%;
-  height: 100%;
+  height: calc(100% - 95px);
   vertical-align: top;
   box-sizing: border-box;
   padding: 0 20px;
@@ -39,6 +39,7 @@ code {
 
 input,
 input::placeholder {
+  font-size: 2.5rem;
   text-align: center
 }
 
@@ -46,39 +47,61 @@ input {
   border: none;
   padding: 0;
   outline: none;
-  height: 9vh;
+  height: 85px;
   width: 49%;
   min-width: 49%;
 }
 
 button {
+  outline: none;
+  background-color: #ccc;
   width: 80px;
   padding: 5px;
-  height: 9vh;
+  height: 85px;
   border: none;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: rgb(173, 219, 104);
 }
 
 .pics {
   width: calc(51% - 80px);
   max-width: calc(51% - 80px);
-  height: 9vh;
-  background-color: #ccc;
+  height: 85px;
+  background-color: #f6f6f6;
+  transition: box-shadow 0.3s ease-in-out;
   display: flex;
   justify-content: flex-start;
   overflow: hidden;
 }
 
-input,
-button,
-.pics {
-  min-height: 70px;
+.imgs {
+  display: flex;
+  justify-content: flex-start;
+  position: relative;
+  left: -100px;
+  height: inherit;
+  min-height: inherit;
+  width: auto;
 }
 
 .active {
-  background-color: rgb(235, 235, 235);
+  box-shadow: inset 0 0 10px 4px rgb(173, 219, 104);
 }
 
-img {
-  height: 9vh;
-  min-height: 70px;
+.gallery {
+  height: 85px;
+}
+
+.progress {
+  background-color: rgb(173, 219, 104);
+  position: relative;
+  width: 100%;
+  height: 10px;
+}
+
+#preview img {
+  max-width: 300px;
 }
