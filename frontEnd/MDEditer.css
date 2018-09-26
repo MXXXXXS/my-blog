@@ -7,14 +7,16 @@ body,
   color: #333;
 }
 
+.writing {
+  display: flex;
+}
+
 textarea,
 #preview {
-  display: inline-block;
-  width: 49%;
-  height: calc(100% - 95px);
-  vertical-align: top;
-  box-sizing: border-box;
-  padding: 0 20px;
+  width: 50%;
+  min-height: calc(100vh - 115px);
+  padding: 10px;
+  /* overflow-y: scroll; */
 }
 
 textarea {
@@ -25,7 +27,10 @@ textarea {
   background-color: #f6f6f6;
   font-size: 14px;
   font-family: 'Monaco', courier, monospace;
-  padding: 20px;
+}
+
+#preview {
+  overflow-x: scroll;
 }
 
 code {
@@ -40,7 +45,7 @@ code {
 input,
 input::placeholder {
   font-size: 2.5rem;
-  text-align: center
+  text-align: center;
 }
 
 input {
@@ -48,8 +53,8 @@ input {
   padding: 0;
   outline: none;
   height: 85px;
-  width: 49%;
-  min-width: 49%;
+  width: 50%;
+  min-width: 50%;
 }
 
 button {
@@ -81,10 +86,9 @@ button:hover {
   display: flex;
   justify-content: flex-start;
   position: relative;
-  left: -100px;
   height: inherit;
   min-height: inherit;
-  width: 100%;
+  width: auto;
 }
 
 .active {

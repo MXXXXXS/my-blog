@@ -6,9 +6,31 @@ const md = require('markdown-it')()
 const express = require('express')
 const app = express()
 const JWT = require('jsonwebtoken')
+const formidable = require('formidable')
 const articleDir = 'D:/coding/AQUAPage/articles/'
 const frontEndDir = 'D:/coding/AQUAPage/frontEnd'
 const imagesDir = 'D:/coding/AQUAPage/images'
+const editor = 'D:/coding/AQUAPage/frontEnd/MDEditer.html'
+const readFile = file => {
+  return new Promise((res, rej) => {
+    fs.readFile(file, (err, data) => {
+      if (err) return rej(err)
+      res(data)
+    })
+  })
+}
+const verifyToken = (secret, token) => {
+  return new Promise((res, rej) => {
+    JWT.verify(token, secret, (err, decoded) => {
+      if (err) {
+        rej(err)
+      } else {
+        res(decoded)
+      }
+    })
+
+  })
+}
 //<定义文章结构>
 class Article {
   constructor(...options) {
@@ -53,14 +75,13 @@ function findInDb(condition, db, cb) {
 }
 //</连接数据库>
 //<token生成>
-function generateToke() {
-  let toke = JWT.sign({
+function gToken(uid, secret) {
+  return JWT.sign({
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
-    administrator: 'mxxxxxs'
-  }, 'mxxxxxs')
+    administrator: uid
+  }, secret)
 }
 //</token生成>
-//<路由处理>
 app.get('/article/*', (rq, rs) => {
   let article = path.basename(rq.path)
   console.log(article)
@@ -78,6 +99,23 @@ app.get('/article/*', (rq, rs) => {
   })
   // rs.send('received article name: ' + article)
 })
+//<登录处理>
+app.post('/login', (rq, rs) => {
+  let form = new formidable.IncomingForm()
+  form.parse(rq, (err, fields) => {
+    if (err) rs.send('Failed')
+    let token = gToken(fields.name, fields.password)
+    rs.setHeader('Content-Type', 'text/plain')
+    rs.send(token)
+    console.log('received user: ' + fields.name + '    ' + fields.password)
+  })
+})
+//</登录处理>
+app.get('/editor', async (rq, rs) => {
+  let page = await readFile(editor)
+  rs.setHeader('Content-Type', 'text/html')
+  rs.send(page)
+})
 
 app.get('/articleList', (rq, rs) => {
   fs.readdir(articleDir, (err, files) => {
@@ -89,25 +127,20 @@ app.get('/articleList', (rq, rs) => {
   })
 })
 
-app.get('/login', (rq, rs) => {
-  
-})
-
 app.post('/addArticle/', (rq, rs) => {
-  let token
-  JWT.verify(token, 'mxxxxxs', (err, decoded) => {
-    if (err) {
-      rs.send(err.message)
-    } else {
-      //todo: 存入数据库
-    }
+  verifyToken(rs.getHeader().authorization, key, (err, decoded) => {
+    rs.setHeader('Content-Type', 'text/html')
+    rs.setHeader('Authorization', 'text/html')
+    
+    rs.send(token)
+    
   })
+
 })
 
 app.use(express.static(frontEndDir))
 app.use('/images', express.static(imagesDir))
 
-//</路由处理>
 
 //<开启服务器>
 const server = app.listen(80, () => {
@@ -116,4 +149,4 @@ const server = app.listen(80, () => {
 
   console.log('Listening at http://%s:%s', host, port)
 })
-//</开启服务器我>
+//</开启服务器>
