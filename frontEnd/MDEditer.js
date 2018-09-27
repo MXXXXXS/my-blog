@@ -19,14 +19,16 @@ Vue.component('update-button', {
     update: function () {
       let jwt = localStorage.getItem('jwt')
       if (jwt) {
+        let that = this
         this.state = '上传中'
         // console.log(this.articleTitle + '\n' + this.content)
         function resHandler(responseText) {
-          if (responseText == 'successed') {
-            this.state = '已上传'
+          if (responseText == 'Successed') {
             eBus.$emit('successed')
+            that.state = '已上传'
           } else {
-            this.state = '上传失败'
+            console.log(responseText)
+            that.state = '上传失败'
           }
         }
         let xhr = new XMLHttpRequest
@@ -47,15 +49,19 @@ Vue.component('update-button', {
             resHandler(xhr.responseText)
           }
         }
-        xhr.open('POST', '/addArticle/' + this.articleTitle)
-        xhr.setRequestHeader('Content-Type', 'text/plain')
-        xhr.setRequestHeader('Authorization', 'Bearer ' + jwt)
-        xhr.send(JSON.stringify({
-          content: this.content,
-          title: this.articleTitle
-        }))
+        xhr.open('POST', '/addArticle')
+        xhr.setRequestHeader('jwt', jwt)
+        let formData = new FormData()
+        formData.append('content', this.content)
+        formData.append('title', this.articleTitle)
+        if (this.articleTitle) {
+          xhr.send(formData)
+          
+        } else {
+          alert('请输入标题')
+        }
       } else {
-        alert('没有token, 无法发送')
+        window.location.href = '/login'
       }
     }
   },

@@ -11,6 +11,7 @@ const articleDir = 'D:/coding/AQUAPage/articles/'
 const frontEndDir = 'D:/coding/AQUAPage/frontEnd'
 const imagesDir = 'D:/coding/AQUAPage/images'
 const editor = 'D:/coding/AQUAPage/frontEnd/MDEditer.html'
+const adminKey = 'mxxxxxs'
 const readFile = file => {
   return new Promise((res, rej) => {
     fs.readFile(file, (err, data) => {
@@ -19,7 +20,7 @@ const readFile = file => {
     })
   })
 }
-const verifyToken = (secret, token) => {
+const verifyToken = (token, secret) => {
   return new Promise((res, rej) => {
     JWT.verify(token, secret, (err, decoded) => {
       if (err) {
@@ -43,42 +44,43 @@ class Article {
 new Article('第一篇存在数据库里的文章', 'Hello world?', '没有评论', {})
 //</定义文章结构>
 //<连接数据库>
-const dbUrl = 'mongodb://localhost:27017'
-const dbName = 'cliPage'
-MongoClient.connect(dbUrl, (err, client) => {
-  assert.strictEqual(null, err, 'X连接数据库失败')
-  console.log('√连接到数据库成功')
-  const db = client.db(dbName)
-  findInDb({}, db, () => {
-    client.close()
-  })
-})
-function insert2db(item, db, cb) {
-  const collection = db.collection('articles')
-  collection.insertMany([item],
-    (err, result) => {
-      assert.strictEqual(err, null)
-      assert.strictEqual(1, result.result.n)
-      assert.strictEqual(1, result.ops.length)
-      console.log('√添加了一篇文章到数据库里')
-      cb(result)
-    })
-}
-function findInDb(condition, db, cb) {
-  const collection = db.collection('articles')
-  collection.find(condition).toArray((err, articles) => {
-    assert.strictEqual(err, null)
-    console.log('找到了这些:')
-    console.log(articles)
-    cb(articles)
-  })
-}
+// const dbUrl = 'mongodb://localhost:27017'
+// const dbName = 'cliPage'
+// MongoClient.connect(dbUrl, (err, client) => {
+//   assert.strictEqual(null, err, 'X连接数据库失败')
+//   console.log('√连接到数据库成功')
+//   const db = client.db(dbName)
+//   findInDb({}, db, () => {
+//     client.close()
+//   })
+// })
+// function insert2db(item, db, cb) {
+//   const collection = db.collection('articles')
+//   collection.insertMany([item],
+//     (err, result) => {
+//       assert.strictEqual(err, null)
+//       assert.strictEqual(1, result.result.n)
+//       assert.strictEqual(1, result.ops.length)
+//       console.log('√添加了一篇文章到数据库里')
+//       cb(result)
+//     })
+// }
+// function findInDb(condition, db, cb) {
+//   const collection = db.collection('articles')
+//   collection.find(condition).toArray((err, articles) => {
+//     assert.strictEqual(err, null)
+//     console.log('找到了这些:')
+//     console.log(articles)
+//     cb(articles)
+//   })
+// }
 //</连接数据库>
 //<token生成>
 function gToken(uid, secret) {
   return JWT.sign({
     exp: Math.floor(Date.now() / 1000) + (60 * 60),
-    administrator: uid
+    administrator: uid,
+    secret: secret
   }, secret)
 }
 //</token生成>
@@ -127,14 +129,27 @@ app.get('/articleList', (rq, rs) => {
   })
 })
 
-app.post('/addArticle/', (rq, rs) => {
-  verifyToken(rs.getHeader().authorization, key, (err, decoded) => {
-    rs.setHeader('Content-Type', 'text/html')
-    rs.setHeader('Authorization', 'text/html')
-    
-    rs.send(token)
-    
-  })
+app.post('/addArticle', async (rq, rs) => {
+  try {
+    console.log(JSON.stringify(rq.headers.jwt));
+
+    let result = await verifyToken(rq.headers.jwt, adminKey)
+    if (!result) rs.send('Authorize Failed')
+    rs.send('Successed')
+    let form = new formidable.IncomingForm()
+    form.parse(rq, (err, fields, files) => {
+      if (err) throw err
+      console.log(JSON.stringify(fields) + '\n' +JSON.stringify(files))
+
+      fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, (err) => {
+        if(err) throw err
+      })
+
+    })
+  } catch (err) {
+    console.log(err)
+    rs.send('Failed')
+  }
 
 })
 
