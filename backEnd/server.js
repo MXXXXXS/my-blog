@@ -155,7 +155,7 @@ app.post('/addArticle', async (rq, rs) => {
 })
 
 app.use(express.static(frontEndDir))
-app.use(rootDir + '/images', express.static(imagesDir))
+app.use('/images', express.static(imagesDir))
 
 
 //<开启服务器>

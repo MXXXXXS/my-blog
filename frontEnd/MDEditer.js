@@ -1,4 +1,5 @@
 const eBus = new Vue()
+//同时过滤文章里的链接和revoke gallery里的图片, 返回过滤了的文章
 let clrPicsInArticle = (nameAndSrc, article, picsList) => {
   nameAndSrc.forEach(pic => {
     window.URL.revokeObjectURL(pic.src)
@@ -6,6 +7,8 @@ let clrPicsInArticle = (nameAndSrc, article, picsList) => {
     let picHash = pic.src.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
     article = article.replace(new RegExp('!\\[Alt .*\\]\\(blob:null\\/' + picHash[0] + '\\)', 'g'), '')
   })
+  console.log(article)
+  
   return article
 }
 Vue.component('update-button', {
@@ -24,7 +27,7 @@ Vue.component('update-button', {
         // console.log(this.articleTitle + '\n' + this.content)
         function resHandler(responseText) {
           if (responseText == 'Successed') {
-            eBus.$emit('successed')
+            eBus.$emit('clrAll')
             that.state = '已上传'
           } else {
             console.log(responseText)
@@ -158,6 +161,11 @@ new Vue({
     compiledMarkdown: function () {
       return marked(this.input, { sanitize: true })
     }
+  },
+  created() {
+    eBus.$on('clrAll', () => {
+      this.clrAll()
+    })
   },
   methods: {
     update: _.debounce(function (e) {
