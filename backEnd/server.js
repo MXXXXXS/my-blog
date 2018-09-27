@@ -7,10 +7,11 @@ const express = require('express')
 const app = express()
 const JWT = require('jsonwebtoken')
 const formidable = require('formidable')
-const articleDir = 'D:/coding/AQUAPage/articles/'
-const frontEndDir = 'D:/coding/AQUAPage/frontEnd'
-const imagesDir = 'D:/coding/AQUAPage/images'
-const editor = 'D:/coding/AQUAPage/frontEnd/MDEditer.html'
+const rootDir = path.resolve(__dirname, '../')
+const articleDir = rootDir + '/articles/'
+const frontEndDir = rootDir + '/frontEnd'
+const imagesDir = rootDir + '/images'
+const editor = rootDir + '/frontEnd/MDEditer.html'
 const adminKey = 'mxxxxxs'
 const readFile = file => {
   return new Promise((res, rej) => {
@@ -154,7 +155,7 @@ app.post('/addArticle', async (rq, rs) => {
 })
 
 app.use(express.static(frontEndDir))
-app.use('/images', express.static(imagesDir))
+app.use(rootDir + '/images', express.static(imagesDir))
 
 
 //<开启服务器>
