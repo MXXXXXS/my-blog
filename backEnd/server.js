@@ -10,7 +10,8 @@ const formidable = require('formidable')
 const rootDir = path.resolve(__dirname, '../')
 const articleDir = rootDir + '/articles/'
 const frontEndDir = rootDir + '/frontEnd'
-const imagesDir = rootDir + '/images'
+const imagesDir = rootDir + '/images/'
+console.log(imagesDir)
 const editor = rootDir + '/frontEnd/MDEditer.html'
 const adminKey = 'mxxxxxs'
 const readFile = file => {
@@ -155,7 +156,7 @@ app.post('/addArticle', async (rq, rs) => {
 })
 
 app.use(express.static(frontEndDir))
-app.use(rootDir + '/images', express.static(imagesDir))
+app.use('/images', express.static(imagesDir))
 
 
 //<开启服务器>
