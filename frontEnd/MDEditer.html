@@ -18,7 +18,7 @@
       <input type="text" v-model="title" placeholder="输入标题">
       <update-button :article-title="title" :content="input"></update-button>
 
-      <my-gallery @click.native.right.prevent="img2md" @refreshArticle="input = $event" :content="input"></my-gallery>
+      <my-gallery @click.native.right.prevent="img2md" @refresh-article="input = $event" :content="input"></my-gallery>
     </div>
     <div class="progress" :style="{ left: progress + '%' }"></div>
     <div class="writing">

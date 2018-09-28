@@ -27,7 +27,7 @@ Vue.component('update-button', {
           if (e.lengthComputable) {
             //处理文章上传的进度
             let percent = Math.round(e.loaded / e.total * 100)
-            this.progress = - 100 + percent
+            this.progress = -100 + percent
           } else {
             console.log('无法获取上传进度')
           }
@@ -58,7 +58,9 @@ Vue.component('update-button', {
   template: '<button @click="update">{{state}}</button>'
 })
 Vue.component('my-gallery', {
-  props: { 'content': String },
+  props: {
+    'content': String
+  },
   data: function () {
     return {
       //picsList格式: { name1: { src: 'xxxxxxx1' }, name2: { src: 'xxxxxxx2' } }
@@ -76,7 +78,7 @@ Vue.component('my-gallery', {
   },
   created() {
     eBus.$on('articleSentSuccessed', () => {
-      this.clrGallery()
+      this.clrGallery(true)
     })
   },
   methods: {
@@ -112,7 +114,9 @@ Vue.component('my-gallery', {
         if (!files[i].type.match('image.*')) {
           continue
         }
-        this.picsList[files[i].name] = { src: window.URL.createObjectURL(files[i]) }
+        this.picsList[files[i].name] = {
+          src: window.URL.createObjectURL(files[i])
+        }
       }
       this.isActive = false
     },
@@ -127,21 +131,30 @@ Vue.component('my-gallery', {
       console.log(that.content)
     },
     delImg: function (e) {
-      this.clrPicsInArticle([{ src: e.target.src, name: e.target.alt }], this)
-      this.$emit('refreshArticle', this.content)
+      this.clrPicsInArticle([{
+        src: e.target.src,
+        name: e.target.alt
+      }], this)
+      this.$emit('refresh-article', this.content)
     },
     clrGallery: function (clrArticle = false) {
       let nameAndSrc = []
       for (let name in this.picsList) {
         if (this.picsList.hasOwnProperty(name)) {
-          nameAndSrc.push({ name: name, src: this.picsList[name].src })
+          nameAndSrc.push({
+            name: name,
+            src: this.picsList[name].src
+          })
         }
       }
       this.clrPicsInArticle(nameAndSrc, this)
-      if (clrArticle)
-        this.$emit('refreshArticle', '')
-      else
-        this.$emit('refreshArticle', this.content)
+      if (clrArticle) {
+        this.$emit('refresh-article', '')
+      } else {
+        this.$emit('refresh-article', this.content)
+      }
+      console.log(clrArticle)
+
       this.imgsOffset.left = 0
     }
   },
@@ -156,7 +169,9 @@ new Vue({
   },
   computed: {
     compiledMarkdown: function () {
-      return marked(this.input, { sanitize: true })
+      return marked(this.input, {
+        sanitize: true
+      })
     }
   },
   methods: {
