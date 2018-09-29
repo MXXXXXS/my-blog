@@ -24,7 +24,8 @@ Vue.component('update-button', {
         //收集发送内容
         let picsHashRegExp = /blob:.*([a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12})/g,
           picsHash,
-          picsQueue = this.picsList
+          picsQueue = this.picsList,
+          linkNamePairs = {}
         picsHash = this.content.match(picsHashRegExp)
         //构造发送表单
         let formData = new FormData()
@@ -32,8 +33,13 @@ Vue.component('update-button', {
         formData.append('title', this.articleTitle)
         if (picsHash)
           picsHash.forEach(src => {
-            formData.append(picsQueue[src].name, picsQueue[src].blob, picsQueue[src].name)
+            if (picsQueue[src]) { //过滤无效链接
+              linkNamePairs[src] = picsQueue[src].name
+              formData.append(picsQueue[src].name, picsQueue[src].blob, picsQueue[src].name)
+            }
+
           })
+        formData.append('linkNamePairs', JSON.stringify(linkNamePairs))
         //xhr开始
         function resHandler(responseText) {
           if (responseText == 'Successed') {
@@ -41,6 +47,10 @@ Vue.component('update-button', {
             upBtn.articleTitle = ''
             upBtn.$emit('clr-title', upBtn.articleTitle)
             upBtn.state = '已上传'
+            let time_id = _.delay(() => {
+              window.clearTimeout(time_id)
+              upBtn.state = '继续上传'
+            }, 3000)
           } else {
             console.log(responseText)
             upBtn.state = '上传失败'

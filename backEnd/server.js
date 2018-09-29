@@ -11,7 +11,6 @@ const rootDir = path.resolve(__dirname, '../')
 const articleDir = rootDir + '/articles/'
 const frontEndDir = rootDir + '/frontEnd'
 const imagesDir = rootDir + '/images/'
-console.log(imagesDir)
 const editor = rootDir + '/frontEnd/MDEditer.html'
 const adminKey = 'mxxxxxs'
 const readFile = file => {
@@ -88,15 +87,12 @@ function gToken(uid, secret) {
 //</token生成>
 app.get('/article/*', (rq, rs) => {
   let article = path.basename(rq.path)
-  console.log(article)
   fs.readFile(articleDir + article, (err, data) => {
     // console.log('../article/' + article)
     if (err) {
       rs.send(`emmmm, 可能没有一篇叫"${article}"的文章. 参考错误: ${err}`)
       return
     }
-    console.log(data.toString())
-
     let result = md.render(data.toString())
     rs.send(result)
     // rs.send('服务器已接受: ' + article)
@@ -132,19 +128,35 @@ app.get('/articleList', (rq, rs) => {
 })
 
 app.post('/addArticle', async (rq, rs) => {
+  let linkNamePairs = {}
   try {
-    console.log(JSON.stringify(rq.headers.jwt));
-
     let result = await verifyToken(rq.headers.jwt, adminKey)
     if (!result) rs.send('Authorize Failed')
     rs.send('Successed')
     let form = new formidable.IncomingForm()
+    form.uploadDir = rootDir + '/images'
+    form.keepExtensions = true
+    form.on('file', (field, file) => {
+      fs.rename(file.path, form.uploadDir + "/" + file.name, err => {
+        if (err) throw err
+      })
+    })
     form.parse(rq, (err, fields, files) => {
       if (err) throw err
-      console.log(JSON.stringify(fields) + '\n' +JSON.stringify(files))
-      
-      fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, (err) => {
-        if(err) throw err
+      console.log(JSON.stringify(fields) + '\n' + JSON.stringify(files))
+      linkNamePairs = JSON.parse(fields.linkNamePairs)
+      let picsHashRegExp = /blob:.*([a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12})/g
+      let objectUrls = fields.content.match(picsHashRegExp)
+      if (objectUrls)
+        objectUrls.forEach(link => {
+          if (!linkNamePairs[link]) {
+            delete linkNamePairs[link]
+          }
+          fields.content = fields.content.replace(link, '/images/' + linkNamePairs[link])
+
+        })
+      fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, err => {
+        if (err) throw err
       })
 
     })
