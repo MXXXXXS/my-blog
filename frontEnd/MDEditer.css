@@ -109,3 +109,8 @@ button:hover {
 #preview img {
   max-width: 300px;
 }
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}

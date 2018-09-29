@@ -80,7 +80,7 @@ new Article('第一篇存在数据库里的文章', 'Hello world?', '没有评�
 //<token生成>
 function gToken(uid, secret) {
   return JWT.sign({
-    exp: Math.floor(Date.now() / 1000) + (60 * 60),
+    exp: Math.floor(Date.now() / 1000) + 24 * (60 * 60),
     administrator: uid,
     secret: secret
   }, secret)
@@ -142,7 +142,7 @@ app.post('/addArticle', async (rq, rs) => {
     form.parse(rq, (err, fields, files) => {
       if (err) throw err
       console.log(JSON.stringify(fields) + '\n' +JSON.stringify(files))
-
+      
       fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, (err) => {
         if(err) throw err
       })

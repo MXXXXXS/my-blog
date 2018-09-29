@@ -1,38 +1,60 @@
+//事件监听: articleSentSuccessed 事件发送: articleSentSuccessed(全部清除) refresh-article(更新文章)
 const eBus = new Vue()
 Vue.component('update-button', {
   props: ['articleTitle', 'content'],
   data: function () {
     return {
-      state: '上传'
+      state: '上传',
+      picsList: {}
     }
+  },
+  created() {
+    eBus.$on('picsList', picsList => {
+      console.log('收到picsList\n', picsList)
+      this.picsList = picsList
+      console.log('更新upBtn的picsList\n', this.picsList)
+    })
   },
   methods: {
     update: function () {
-      let jwt = localStorage.getItem('jwt')
+      let upBtn = this,
+        jwt = localStorage.getItem('jwt')
       if (jwt) {
-        let that = this
         this.state = '上传中'
-        // console.log(this.articleTitle + '\n' + this.content)
+        //收集发送内容
+        let picsHashRegExp = /blob:.*([a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12})/g,
+          picsHash,
+          picsQueue = this.picsList
+        picsHash = this.content.match(picsHashRegExp)
+        //构造发送表单
+        let formData = new FormData()
+        formData.append('content', this.content)
+        formData.append('title', this.articleTitle)
+        if (picsHash)
+          picsHash.forEach(src => {
+            formData.append(picsQueue[src].name, picsQueue[src].blob, picsQueue[src].name)
+          })
+        //xhr开始
         function resHandler(responseText) {
           if (responseText == 'Successed') {
             eBus.$emit('articleSentSuccessed', true)
-            that.state = '已上传'
+            upBtn.articleTitle = ''
+            upBtn.$emit('clr-title', upBtn.articleTitle)
+            upBtn.state = '已上传'
           } else {
             console.log(responseText)
-            that.state = '上传失败'
+            upBtn.state = '上传失败'
           }
         }
         let xhr = new XMLHttpRequest
+        //处理文章上传的进度
         xhr.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
-            //处理文章上传的进度
             let percent = Math.round(e.loaded / e.total * 100)
             this.progress = -100 + percent
           } else {
             console.log('无法获取上传进度')
           }
-          if (xhr.readyState == 2) console.log('xhr.readyState is 2');
-
         })
         xhr.onreadystatechange = () => {
           if (xhr.readyState == 4 && xhr.status == 200) {
@@ -41,12 +63,8 @@ Vue.component('update-button', {
         }
         xhr.open('POST', '/addArticle')
         xhr.setRequestHeader('jwt', jwt)
-        let formData = new FormData()
-        formData.append('content', this.content)
-        formData.append('title', this.articleTitle)
         if (this.articleTitle) {
           xhr.send(formData)
-
         } else {
           alert('请输入标题')
         }
@@ -55,15 +73,15 @@ Vue.component('update-button', {
       }
     }
   },
-  template: '<button @click="update">{{state}}</button>'
+  template: '#update-button'
 })
-Vue.component('my-gallery', {
+let myGlry = Vue.component('my-gallery', {
   props: {
     'content': String
   },
   data: function () {
     return {
-      //picsList格式: { name1: { src: 'xxxxxxx1' }, name2: { src: 'xxxxxxx2' } }
+      //picsList格式: { objectURL: { name: 'sdfsdfm.jpg', blob: xxxx } }
       picsList: {},
       //控制拖曳的css样式
       isActive: false,
@@ -78,7 +96,13 @@ Vue.component('my-gallery', {
   },
   created() {
     eBus.$on('articleSentSuccessed', () => {
-      this.clrGallery(true)
+      this.refreshArticle(true)
+    })
+    eBus.$on('clrAll', () => {
+      this.refreshArticle(true)
+    })
+    eBus.$on('clrGallery', () => {
+      this.refreshArticle()
     })
   },
   methods: {
@@ -114,47 +138,52 @@ Vue.component('my-gallery', {
         if (!files[i].type.match('image.*')) {
           continue
         }
-        this.picsList[files[i].name] = {
-          src: window.URL.createObjectURL(files[i])
+        let imgLink = window.URL.createObjectURL(files[i])
+        this.picsList[imgLink] = {
+          name: files[i].name,
+          blob: files[i]
         }
       }
+      eBus.$emit('picsList', this.picsList)
+      console.log('添加图片\n', this.picsList)
       this.isActive = false
     },
-    //过滤掉文章里的链接和revoke传入的图片, 返回过滤后的文章
-    clrPicsInArticle: (nameAndSrc, that) => {
+    //过滤掉文章里的链接, revoke传入的图片, 返回过滤后的文章
+    filterRevokeUpdate: (nameAndSrc, gallery) => {
       nameAndSrc.forEach(pic => {
         window.URL.revokeObjectURL(pic.src)
-        Vue.delete(that.picsList, pic.name)
+        Vue.delete(gallery.picsList, pic.src)
         let picHash = pic.src.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
-        that.content = that.content.replace(new RegExp('!\\[Alt .*\\]\\(blob:null\\/' + picHash[0] + '\\)', 'g'), '')
+        console.log(picHash[0])
+        gallery.content = gallery.content.replace(new RegExp('!\\[Alt .*\\]\\(blob:.*' + picHash[0] + '\\)', 'g'), '')
       })
-      console.log(that.content)
+      console.log(gallery.content)
     },
     delImg: function (e) {
-      this.clrPicsInArticle([{
+      this.filterRevokeUpdate([{
         src: e.target.src,
         name: e.target.alt
-      }], this)
+      }], myGlry)
       this.$emit('refresh-article', this.content)
     },
-    clrGallery: function (clrArticle = false) {
+    refreshArticle: function (clrArticle = false) {
       let nameAndSrc = []
-      for (let name in this.picsList) {
-        if (this.picsList.hasOwnProperty(name)) {
+      for (let src in this.picsList) {
+        if (this.picsList.hasOwnProperty(src)) {
           nameAndSrc.push({
-            name: name,
-            src: this.picsList[name].src
+            src: src,
+            name: this.picsList[src].name
           })
         }
       }
-      this.clrPicsInArticle(nameAndSrc, this)
+      this.filterRevokeUpdate(nameAndSrc, this)
       if (clrArticle) {
         this.$emit('refresh-article', '')
       } else {
         this.$emit('refresh-article', this.content)
       }
-      console.log(clrArticle)
 
+      console.log(clrArticle)
       this.imgsOffset.left = 0
     }
   },
@@ -182,7 +211,14 @@ new Vue({
       this.input += `\n\n![Alt ${e.target.alt}](${e.target.src})\n\n`
     },
     clrAll: function () {
-      eBus.$emit('articleSentSuccessed', true)
+      this.title = ''
+      eBus.$emit('clrAll')
+    },
+    clrGallery: function () {
+      eBus.$emit('clrGallery')
+    },
+    clrArticle: function () {
+      this.input = ''
     }
   }
 })
