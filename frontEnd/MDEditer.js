@@ -31,11 +31,11 @@ Vue.component('update-button', {
         let formData = new FormData()
         formData.append('content', this.content)
         formData.append('title', this.articleTitle)
-        if (picsHash)
+        if (picsHash)//文内是否有图片
           picsHash.forEach(src => {
-            if (picsQueue[src]) { //过滤无效链接
+            if (picsQueue[src]) { //核对picsQueue, 过滤无效链接
               linkNamePairs[src] = picsQueue[src].name
-              formData.append(picsQueue[src].name, picsQueue[src].blob, picsQueue[src].name)
+              formData.append(src, picsQueue[src].blob, picsQueue[src].name)
             }
 
           })

@@ -134,27 +134,35 @@ app.post('/addArticle', async (rq, rs) => {
     if (!result) rs.send('Authorize Failed')
     rs.send('Successed')
     let form = new formidable.IncomingForm()
-    form.uploadDir = rootDir + '/images'
+    form.uploadDir = rootDir + '/images' //设置图片存放路径
     form.keepExtensions = true
     form.on('file', (field, file) => {
-      fs.rename(file.path, form.uploadDir + "/" + file.name, err => {
-        if (err) throw err
-      })
+      // fs.rename(file.path, form.uploadDir + "/" + file.name, err => {
+      //   if (err) throw err
+      // })
     })
     form.parse(rq, (err, fields, files) => {
       if (err) throw err
       console.log(JSON.stringify(fields) + '\n' + JSON.stringify(files))
-      linkNamePairs = JSON.parse(fields.linkNamePairs)
-      let picsHashRegExp = /blob:.*([a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12})/g
-      let objectUrls = fields.content.match(picsHashRegExp)
-      if (objectUrls)
-        objectUrls.forEach(link => {
-          if (!linkNamePairs[link]) {
-            delete linkNamePairs[link]
-          }
-          fields.content = fields.content.replace(link, '/images/' + linkNamePairs[link])
 
-        })
+      for (let key in files) {
+        let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
+        if (files.hasOwnProperty(key)) {
+          const pic = files[key];
+          fs.rename(pic.path, form.uploadDir + '/' + hash[0] + '_' + pic.name, err => {
+            if (err) throw err
+          })
+        }
+      }
+
+      linkNamePairs = JSON.parse(fields.linkNamePairs)
+      for (let key in linkNamePairs) {
+        if (linkNamePairs.hasOwnProperty(key)) {
+          let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
+          fields.content = fields.content.replace(key, '/images/' + hash[0] + '_' + linkNamePairs[key])
+        }
+      }
+
       fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, err => {
         if (err) throw err
       })
