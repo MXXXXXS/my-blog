@@ -23,3 +23,7 @@ input {
   caret-color: aquamarine;
   color: aquamarine;
 }
+
+img {
+  width: 400px;
+}

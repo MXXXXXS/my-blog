@@ -51,6 +51,8 @@ Vue.component('update-button', {
               window.clearTimeout(time_id)
               upBtn.state = '继续上传'
             }, 3000)
+          } else if (responseText == 'Authorize Failed'){
+            window.location.href = '/login'
           } else {
             console.log(responseText)
             upBtn.state = '上传失败'

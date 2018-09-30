@@ -80,24 +80,20 @@ new Article('第一篇存在数据库里的文章', 'Hello world?', '没有评�
 function gToken(uid, secret) {
   return JWT.sign({
     exp: Math.floor(Date.now() / 1000) + 24 * (60 * 60),
-    administrator: uid,
-    secret: secret
+    administrator: uid
   }, secret)
 }
 //</token生成>
 app.get('/article/*', (rq, rs) => {
-  let article = path.basename(rq.path)
+  let article = decodeURI(path.basename(rq.path))
   fs.readFile(articleDir + article, (err, data) => {
-    // console.log('../article/' + article)
     if (err) {
       rs.send(`emmmm, 可能没有一篇叫"${article}"的文章. 参考错误: ${err}`)
       return
     }
     let result = md.render(data.toString())
     rs.send(result)
-    // rs.send('服务器已接受: ' + article)
   })
-  // rs.send('received article name: ' + article)
 })
 //<登录处理>
 app.post('/login', (rq, rs) => {
@@ -129,55 +125,51 @@ app.get('/articleList', (rq, rs) => {
 
 app.post('/addArticle', async (rq, rs) => {
   let linkNamePairs = {}
-  try {
-    let result = await verifyToken(rq.headers.jwt, adminKey)
-    if (!result) rs.send('Authorize Failed')
-    rs.send('Successed')
-    let form = new formidable.IncomingForm()
-    form.uploadDir = rootDir + '/images' //设置图片存放路径
-    form.keepExtensions = true
-    form.on('file', (field, file) => {
-      // fs.rename(file.path, form.uploadDir + "/" + file.name, err => {
-      //   if (err) throw err
-      // })
-    })
-    form.parse(rq, (err, fields, files) => {
-      if (err) throw err
-      console.log(JSON.stringify(fields) + '\n' + JSON.stringify(files))
-
-      for (let key in files) {
-        let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
-        if (files.hasOwnProperty(key)) {
-          const pic = files[key];
-          fs.rename(pic.path, form.uploadDir + '/' + hash[0] + '_' + pic.name, err => {
-            if (err) throw err
-          })
-        }
-      }
-
-      linkNamePairs = JSON.parse(fields.linkNamePairs)
-      for (let key in linkNamePairs) {
-        if (linkNamePairs.hasOwnProperty(key)) {
-          let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
-          fields.content = fields.content.replace(key, '/images/' + hash[0] + '_' + linkNamePairs[key])
-        }
-      }
-
-      fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, err => {
+  await verifyToken(rq.headers.jwt, adminKey)
+    .then(() => {
+      rs.send('Successed')
+      let form = new formidable.IncomingForm()
+      form.uploadDir = rootDir + '/images' //设置图片存放路径
+      form.keepExtensions = true
+      form.parse(rq, (err, fields, files) => {
         if (err) throw err
-      })
+        console.log(JSON.stringify(fields) + '\n' + JSON.stringify(files))
 
+        for (let key in files) {
+          let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
+          if (files.hasOwnProperty(key)) {
+            const pic = files[key];
+            fs.rename(pic.path, form.uploadDir + '/' + hash[0] + '_' + pic.name, err => {
+              if (err) throw err
+            })
+          }
+        }
+
+        linkNamePairs = JSON.parse(fields.linkNamePairs)
+        for (let key in linkNamePairs) {
+          if (linkNamePairs.hasOwnProperty(key)) {
+            let hash = key.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/)
+            fields.content = fields.content.replace(key, '/images/' + hash[0] + '_' + linkNamePairs[key])
+          }
+        }
+
+        fs.appendFile(path.resolve(__dirname, '../articles/' + fields.title + '.md'), fields.content, err => {
+          if (err) throw err
+        })
+
+      })
     })
-  } catch (err) {
-    console.log(err)
-    rs.send('Failed')
-  }
+    .catch(err => {
+      rs.send('Authorize Failed')
+      console.log(err.name, err.message)
+    })
+
 
 })
 
-app.use(express.static(frontEndDir))
+app.use('/', express.static(frontEndDir))
 app.use('/images', express.static(imagesDir))
-
+app.use('/login', express.static(frontEndDir + '/login.html'))
 
 //<开启服务器>
 const server = app.listen(80, () => {
