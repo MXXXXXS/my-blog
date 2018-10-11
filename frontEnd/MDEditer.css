@@ -21,7 +21,6 @@ textarea,
 
 textarea {
   border: none;
-  border-right: 1px solid #ccc;
   resize: none;
   outline: none;
   background-color: #f6f6f6;
@@ -30,7 +29,7 @@ textarea {
 }
 
 #preview {
-  overflow-x: scroll;
+  overflow: auto;
 }
 
 code {
@@ -59,10 +58,11 @@ input {
 
 button {
   outline: none;
-  background-color: #ccc;
+  color: rgb(0, 0, 0);
+  background-color: rgba(204, 204, 204, 0.253);
   width: 80px;
   padding: 5px;
-  height: 85px;
+  height: 80px;
   border: none;
   transition: background-color 0.3s ease-in-out;
 }
@@ -72,8 +72,9 @@ button:hover {
 }
 
 .pics {
-  width: calc(51% - 80px);
-  max-width: calc(51% - 80px);
+  /* width: calc(51% - 80px);
+  max-width: calc(51% - 80px); */
+  flex: 1;
   height: 85px;
   background-color: #f6f6f6;
   transition: box-shadow 0.3s ease-in-out;
@@ -112,5 +113,12 @@ button:hover {
 
 .sidebar {
   display: flex;
-  flex-direction: column;
+  position: fixed;
+  left: -320px;
+  bottom: 0;
+  transition: left 0.3s ease-in-out;
+}
+
+.sidebar:hover {
+  left: 0;
 }

@@ -51,7 +51,7 @@ Vue.component('update-button', {
               window.clearTimeout(time_id)
               upBtn.state = '继续上传'
             }, 3000)
-          } else if (responseText == 'Authorize Failed'){
+          } else if (responseText == 'Authorize Failed') {
             window.location.href = '/login'
           } else {
             console.log(responseText)
@@ -87,7 +87,7 @@ Vue.component('update-button', {
   },
   template: '#update-button'
 })
-let myGlry = Vue.component('my-gallery', {
+Vue.component('my-gallery', {
   props: {
     'content': String
   },
@@ -95,46 +95,67 @@ let myGlry = Vue.component('my-gallery', {
     return {
       //picsList格式: { objectURL: { name: 'sdfsdfm.jpg', blob: xxxx } }
       picsList: {},
+      picsWidth: 0,
       //控制拖曳的css样式
       isActive: false,
       //imgs包裹盒的属性
-      imgsOffset: {
-        left: 0,
-        lastLeft: 0,
-        dragable: false,
-        mouseX: 0
+      imgsWidth: 0,
+      dragable: false,
+      lastLeft: 0,
+      left: 0,
+      lastEScreenX: 0,
+      EScreenX: 0
+    }
+  },
+  watch: {
+    left() {
+      if (this.picsWidth > this.imgsWidth) {
+        this.left = 0
+      } else if (this.left > 0) {
+        this.left = 0
+      } else if (this.left < this.picsWidth - this.imgsWidth) {
+        this.left = this.picsWidth - this.imgsWidth
       }
+    },
+    EScreenX() {
+      this.left =
+        this.lastLeft + this.EScreenX - this.lastEScreenX
     }
   },
   created() {
     eBus.$on('articleSentSuccessed', () => {
+      this.left = 0
       this.refreshArticle(true)
     })
     eBus.$on('clrAll', () => {
+      this.left = 0
       this.refreshArticle(true)
     })
     eBus.$on('clrGallery', () => {
+      this.left = 0
       this.refreshArticle()
     })
   },
   methods: {
     initX: function (e) {
-      this.imgsOffset.lastLeft = this.imgsOffset.left
-      this.imgsOffset.mouseX = e.screenX
-      this.imgsOffset.dragable = true
+      this.imgsWidth = document.querySelector('.imgs').offsetWidth
+      this.picsWidth = document.querySelector('.pics').offsetWidth
+      this.lastLeft = this.left
+      this.lastEScreenX = e.screenX
+      this.dragable = true
     },
     moveX: function (e) {
-      if (this.imgsOffset.dragable) {
-        this.imgsOffset.left = this.imgsOffset.lastLeft + e.screenX - this.imgsOffset.mouseX
+      if (this.dragable) {
+        this.EScreenX = e.screenX
       }
     },
     endX: function (e) {
-      this.imgsOffset.dragable = false
+      this.dragable = false
       // let imgs = document.querySelector('.imgs').offsetWidth - e.target.offsetWidth
-      // if (this.imgsOffset.left > 0) {
-      //   this.imgsOffset.left = 0
-      // } else if (this.imgsOffset.left < -1 * imgs) {
-      //   this.imgsOffset.left = -1 * imgs
+      // if (this.left > 0) {
+      //   this.left = 0
+      // } else if (this.left < -1 * imgs) {
+      //   this.left = -1 * imgs
       // }
 
     },
@@ -175,7 +196,7 @@ let myGlry = Vue.component('my-gallery', {
       this.filterRevokeUpdate([{
         src: e.target.src,
         name: e.target.alt
-      }], myGlry)
+      }], this)
       this.$emit('refresh-article', this.content)
     },
     refreshArticle: function (clrArticle = false) {
@@ -196,7 +217,7 @@ let myGlry = Vue.component('my-gallery', {
       }
 
       console.log(clrArticle)
-      this.imgsOffset.left = 0
+      this.left = 0
     }
   },
   template: `#my-gallery`
