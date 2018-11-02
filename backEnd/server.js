@@ -2,16 +2,17 @@ const path = require('path')
 const fs = require('fs')
 const assert = require('assert')
 const MongoClient = require('mongodb').MongoClient
-const md = require('markdown-it')()
+const MarkdownIt = require('markdown-it')
+const md = new MarkdownIt()
 const express = require('express')
 const app = express()
 const JWT = require('jsonwebtoken')
 const formidable = require('formidable')
-const rootDir = path.resolve(__dirname, '../')
-const articleDir = rootDir + '/articles/'
-const frontEndDir = rootDir + '/frontEnd'
-const imagesDir = rootDir + '/images/'
-const editor = rootDir + '/frontEnd/MDEditer.html'
+const rootDir = path.resolve(__dirname, '..')
+const articleDir = rootDir + '/backEnd/articles'
+const AQUAPageDir = rootDir + '/frondEnd/AQUAPage'
+const loginDir = rootDir + '/frondEnd/login'
+const editorDir = rootDir + '/frontEnd/editor'
 const adminKey = 'mxxxxxs'
 const readFile = file => {
   return new Promise((res, rej) => {
@@ -86,7 +87,7 @@ function gToken(uid, secret) {
 //</token生成>
 app.get('/article/*', (rq, rs) => {
   let article = decodeURI(path.basename(rq.path))
-  fs.readFile(articleDir + article, (err, data) => {
+  fs.readFile(articleDir + '/' + article, (err, data) => {
     if (err) {
       rs.send(`emmmm, 可能没有一篇叫"${article}"的文章. 参考错误: ${err}`)
       return
@@ -108,7 +109,7 @@ app.post('/login', (rq, rs) => {
 })
 //</登录处理>
 app.get('/editor', async (rq, rs) => {
-  let page = await readFile(editor)
+  let page = await readFile(editorDir + '/MDEditor.html')
   rs.setHeader('Content-Type', 'text/html')
   rs.send(page)
 })
@@ -167,9 +168,9 @@ app.post('/addArticle', async (rq, rs) => {
 
 })
 
-app.use('/', express.static(frontEndDir))
-app.use('/images', express.static(imagesDir))
-app.use('/login', express.static(frontEndDir + '/login.html'))
+app.use('/', express.static(AQUAPageDir))
+app.use('/images', express.static(AQUAPageDir + '/images'))
+app.use('/login', express.static(loginDir + '/login.html'))
 
 //<开启服务器>
 const server = app.listen(80, () => {
