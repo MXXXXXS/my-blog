@@ -8,7 +8,13 @@
     </div>
     <div class="toolbar">
       <input type="text" v-model="title" placeholder="输入标题">
-      <my-gallery @click.native.right.prevent="img2md" @refresh-article="input = $event" :content="input"></my-gallery>
+      <my-gallery
+        @click.native.right.prevent
+        @add-img2article="addImg2article"
+        @del-img="delImgInArticle"
+        @del-all-imgs="delAllImgsInArticle"
+        :content="input"
+        ></my-gallery>
     </div>
     <div class="progress" :style="{ left: progress + '%' }"></div>
     <div class="writing">
@@ -44,12 +50,29 @@ export default {
     update: _.debounce(function(e) {
       this.input = e.target.value;
     }, 300),
-    img2md(e) {
-      this.input += `\n\n![Alt ${e.target.alt}](${e.target.src})\n\n`;
+    addImg2article(img) {
+      this.input += `\n\n![Alt ${img.alt}](${img.src})\n\n`;
+    },
+    delImgInArticle(imgSrc) {
+        window.URL.revokeObjectURL(imgSrc);
+        let picHash = imgSrc.match(
+          /[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/
+        );
+        console.log(picHash[0]);
+        this.input = this.input.replace(
+          new RegExp("!\\[Alt .*\\]\\(blob:.*" + picHash[0] + "\\)", "g"),
+          ""
+        );
+    },
+    delAllImgsInArticle(imgSrcs) {
+      imgSrcs.forEach(imgSrc => {
+        this.delImgInArticle(imgSrc)
+      });
     },
     clrAll() {
       this.title = "";
-      eBus.$emit("clrAll");
+      this.input = ''
+      eBus.$emit("clrGallery");
     },
     clrGallery() {
       eBus.$emit("clrGallery");
@@ -147,8 +170,9 @@ button:hover {
   height: 10px;
 }
 
-#preview img {
-  max-width: 200px;
+#preview >>> img {
+  max-width: 400px;
+  max-height: 300px;
 }
 
 .sidebar {

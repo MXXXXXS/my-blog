@@ -1,13 +1,31 @@
 <template>
-  <div class="pics" :class="{ active: isActive }" @mousedown.prevent="initX" @mousemove.prevent="moveX" @mouseup.prevent="endX" @mouseleave="endX" @dragover.stop.prevent="dragOver" @dragleave.stop.prevent="dragLeave" @drop.stop.prevent="addImg">
-      <div class="imgs" :style="{ transform: 'translateX(' + left + 'px)' }">
-        <img class="gallery" v-for="(value, src) in picsList" :key="src" :alt="value.name" :src="src"  @dblclick="delImg" />
-      </div>
+  <div
+    class="pics"
+    :class="{ active: isActive }"
+    @mousedown.prevent="initX"
+    @mousemove.prevent="moveX"
+    @mouseup.prevent="endX"
+    @mouseleave="endX"
+    @dragover.stop.prevent="dragOver"
+    @dragleave.stop.prevent="dragLeave"
+    @drop.stop.prevent="addImg"
+  >
+    <div class="imgs" :style="{ transform: 'translateX(' + left + 'px)' }">
+      <img
+        class="gallery"
+        v-for="(value, src) in picsList"
+        :key="src"
+        :alt="value.name"
+        :src="src"
+        @dblclick="delImg"
+        @click.right="addImg2article"
+      >
     </div>
+  </div>
 </template>
 <script>
 import eBus from "./eBus.js";
-import Vue from 'vue'
+import Vue from "vue";
 export default {
   name: "myGallery",
   props: {
@@ -44,18 +62,9 @@ export default {
     }
   },
   created() {
-    eBus.$on("articleSentSuccessed", () => {
-      this.left = 0;
-      this.refreshArticle(true);
-    });
-    eBus.$on("clrAll", () => {
-      this.left = 0;
-      this.refreshArticle(true);
-    });
-    eBus.$on("clrGallery", () => {
-      this.left = 0;
-      this.refreshArticle();
-    });
+    //以下为自由编写区
+    eBus.$on("clrGallery", this.clrGallery);
+    //以上为自由编写区
   },
   methods: {
     initX: function(e) {
@@ -72,12 +81,6 @@ export default {
     },
     endX: function(e) {
       this.dragable = false;
-      // let imgs = document.querySelector('.imgs').offsetWidth - e.target.offsetWidth
-      // if (this.left > 0) {
-      //   this.left = 0
-      // } else if (this.left < -1 * imgs) {
-      //   this.left = -1 * imgs
-      // }
     },
     dragOver: function() {
       this.isActive = true;
@@ -97,58 +100,30 @@ export default {
           blob: files[i]
         };
       }
-      eBus.$emit("picsList", this.picsList);
       console.log("添加图片\n", this.picsList);
       this.isActive = false;
     },
-    //过滤掉文章里的链接, revoke传入的图片, 返回过滤后的文章
-    filterRevokeUpdate: (nameAndSrc, gallery) => {
-      nameAndSrc.forEach(pic => {
-        window.URL.revokeObjectURL(pic.src);
-        Vue.delete(gallery.picsList, pic.src);
-        let picHash = pic.src.match(
-          /[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/
-        );
-        console.log(picHash[0]);
-        gallery.content = gallery.content.replace(
-          new RegExp("!\\[Alt .*\\]\\(blob:.*" + picHash[0] + "\\)", "g"),
-          ""
-        );
-      });
-      console.log(gallery.content);
-    },
     delImg: function(e) {
-      this.filterRevokeUpdate(
-        [
-          {
-            src: e.target.src,
-            name: e.target.alt
-          }
-        ],
-        this
-      );
-      this.$emit("refresh-article", this.content);
+      Vue.delete(this.picsList, e.target.src);
+      //以下为自由编写区
+      this.$emit("del-img", e.target.src);
+      //以上为自由编写区
     },
-    refreshArticle: function(clrArticle = false) {
-      let nameAndSrc = [];
-      for (let src in this.picsList) {
-        if (this.picsList.hasOwnProperty(src)) {
-          nameAndSrc.push({
-            src: src,
-            name: this.picsList[src].name
-          });
-        }
-      }
-      this.filterRevokeUpdate(nameAndSrc, this);
-      if (clrArticle) {
-        this.$emit("refresh-article", "");
-      } else {
-        this.$emit("refresh-article", this.content);
-      }
-
-      console.log(clrArticle);
+    clrGallery: function() {
+      //以下为自由编写区
+      this.$emit("del-all-imgs", Object.keys(this.picsList));
+      Object.keys(this.picsList).forEach(key =>
+        window.URL.revokeObjectURL(key)
+      );
+      //以上为自由编写区
+      this.picsList = {};
       this.left = 0;
+    },
+    //以下为自由编写区
+    addImg2article: function(e) {
+      this.$emit("add-img2article", { alt: e.target.alt, src: e.target.src });
     }
+    //以上为自由编写区
   }
 };
 </script>
