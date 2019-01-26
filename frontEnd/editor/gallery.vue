@@ -64,6 +64,8 @@ export default {
   created() {
     //以下为自由编写区
     eBus.$on("clrGallery", this.clrGallery);
+    eBus.$on("needPicsList", this.sendPicsList);
+    eBus.$on("rebuildPicsList", this.rebuildPicsList);
     //以上为自由编写区
   },
   methods: {
@@ -122,6 +124,19 @@ export default {
     //以下为自由编写区
     addImg2article: function(e) {
       this.$emit("add-img2article", { alt: e.target.alt, src: e.target.src });
+    },
+    sendPicsList: function(createArticle) {
+      createArticle(this.picsList);
+    },
+    rebuildPicsList: function(picsList) {
+      
+      console.log("picsList has been rebuilt");
+      for (const key in picsList) {
+        if (picsList.hasOwnProperty(key)) {
+          const element = picsList[key];
+          Vue.set(this.picsList, key, element);
+        }
+      }
     }
     //以上为自由编写区
   }

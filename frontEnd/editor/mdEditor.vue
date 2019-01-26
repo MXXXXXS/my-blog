@@ -1,6 +1,8 @@
 <template>
   <div>
     <div class="sidebar">
+      <button class="save" @click="save">保存文章</button>
+      <button class="load" @click="load">恢复文章</button>
       <button class="clrAll" @click="clrAll">全部清除</button>
       <button class="clrGallery" @click="clrGallery">清除画廊</button>
       <button class="clrArticle" @click="clrArticle">清除文章</button>
@@ -14,7 +16,7 @@
         @del-img="delImgInArticle"
         @del-all-imgs="delAllImgsInArticle"
         :content="input"
-        ></my-gallery>
+      ></my-gallery>
     </div>
     <div class="progress" :style="{ left: progress + '%' }"></div>
     <div class="writing">
@@ -32,13 +34,106 @@ import myGallery from "./gallery.vue";
 import uploadBtn from "./uploadBtn.vue";
 import eBus from "./eBus.js";
 
+let request = window.indexedDB.open("articles", 1);
+let db;
+request.onupgradeneeded = e => {
+  db = e.target.result;
+  let objStore = db.createObjectStore("articleCollection", {
+    keyPath: "title"
+  });
+};
+request.onerror = e => {
+  alert(`indexedDB启动失败, 错误: ${e}`);
+};
+request.onsuccess = e => {
+  db = e.target.result;
+  console.log("db打开成功");
+};
+function addArticle(article) {
+  let result = db
+    .transaction(["articleCollection"], "readwrite")
+    .objectStore("articleCollection")
+    .add({
+      title: article.title,
+      content: article.content,
+      picsList: article.picsList
+    });
+
+  result.onsuccess = function(e) {
+    console.log(`文章保存成功!\n${e}`);
+  };
+  result.onerror = function(e) {
+    console.error(`文章保存失败...\n${JSON.stringify(e)}`);
+  };
+}
+
+function getArticle(articleTitle, _this, handle) {
+  let request = db
+    .transaction(["articleCollection"])
+    .objectStore("articleCollection")
+    .get(articleTitle);
+
+  request.onsuccess = function(e) {
+    console.log("尝试取出文章成功!");
+    if (request.result) {
+      console.log(request.result)
+      console.log(`标题: \n${request.result.title}
+      内容: \n${request.result.content}`);
+      //此处已获得文章
+      handle(_this, request.result);
+    } else {
+      console.warn(`没有标题为:${articleTitle}的文章`);
+    }
+  };
+  request.onerror = function(e) {
+    console.error("尝试取出文章失败...");
+  };
+}
+
+function loadArticle(_this, article) {
+  //gallery还原
+  let newPicsList = {};
+  let objectURLMap = {}
+  console.log(article);
+  
+  for (const key in article.picsList) {
+    if (article.picsList.hasOwnProperty(key)) {
+      const element = article.picsList[key];
+      let newObjectURL
+      newObjectURL = URL.createObjectURL(element.blob);
+      newPicsList[newObjectURL] = {
+        name: element.name,
+        blob: element.blob
+      };
+      //新旧objeURL映射表建立
+      objectURLMap[key] = newObjectURL
+    }
+  }
+  eBus.$emit("rebuildPicsList", newPicsList);
+  //文章还原
+  _this.title = article.title;
+  let content = article.content;
+  let reg = /!\[Alt .*\]\((blob:.*[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12})\)/g;
+  let result;
+  while ((result = reg.exec(content))) {
+    // let oldImg = result[0];
+    let oldImgSrc = result[1];
+    content = content.replace(
+        new RegExp("!\\[Alt .*\\]\\(" + oldImgSrc + "\\)", "g"),
+        `![Alt ${newPicsList[objectURLMap[oldImgSrc]].name}](${objectURLMap[oldImgSrc]})`
+    )
+  }
+  _this.input = content
+}
+
 export default {
   name: "mdEditor",
   data() {
     return {
       title: "",
       input: "# hello",
-      progress: -100
+      progress: -100,
+      article: {}
     };
   },
   computed: {
@@ -54,24 +149,36 @@ export default {
       this.input += `\n\n![Alt ${img.alt}](${img.src})\n\n`;
     },
     delImgInArticle(imgSrc) {
-        window.URL.revokeObjectURL(imgSrc);
-        let picHash = imgSrc.match(
-          /[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/
-        );
-        console.log(picHash[0]);
-        this.input = this.input.replace(
-          new RegExp("!\\[Alt .*\\]\\(blob:.*" + picHash[0] + "\\)", "g"),
-          ""
-        );
+      window.URL.revokeObjectURL(imgSrc);
+      let picHash = imgSrc.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/);
+      console.log(picHash[0]);
+      this.input = this.input.replace(
+        new RegExp("!\\[Alt .*\\]\\(blob:.*" + picHash[0] + "\\)", "g"),
+        ""
+      );
     },
     delAllImgsInArticle(imgSrcs) {
       imgSrcs.forEach(imgSrc => {
-        this.delImgInArticle(imgSrc)
+        this.delImgInArticle(imgSrc);
       });
+    },
+    save() {
+      let createArticle = picsList => {
+        this.article.title = this.title;
+        this.article.content = this.input;
+        this.article.picsList = picsList;
+
+        addArticle(this.article);
+      };
+      eBus.$emit("needPicsList", createArticle);
+    },
+    load() {
+      let title = "test";
+      getArticle(title, this, loadArticle);
     },
     clrAll() {
       this.title = "";
-      this.input = ''
+      this.input = "";
       eBus.$emit("clrGallery");
     },
     clrGallery() {
@@ -178,7 +285,7 @@ button:hover {
 .sidebar {
   display: flex;
   position: fixed;
-  left: -240px;
+  left: calc(5 * -80px);
   bottom: 0;
   transition: left 0.3s ease-in-out 1s;
 }
