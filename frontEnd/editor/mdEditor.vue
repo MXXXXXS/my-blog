@@ -2,7 +2,8 @@
   <div>
     <div class="sidebar">
       <button class="save" @click="save">保存文章</button>
-      <button class="load" @click="load">恢复文章</button>
+      <button class="load" @mouseover="refreshListBoard">恢复文章</button>
+      <list-board @load-article="load"></list-board>
       <button class="clrAll" @click="clrAll">全部清除</button>
       <button class="clrGallery" @click="clrGallery">清除画廊</button>
       <button class="clrArticle" @click="clrArticle">清除文章</button>
@@ -32,6 +33,7 @@ import MarkdownIt from "markdown-it";
 const md = new MarkdownIt();
 import myGallery from "./gallery.vue";
 import uploadBtn from "./uploadBtn.vue";
+import listBoard from "./listBoard.vue"
 import eBus from "./eBus.js";
 
 let request = window.indexedDB.open("articles", 1);
@@ -51,9 +53,9 @@ request.onsuccess = e => {
 };
 function addArticle(article) {
   let result = db
-    .transaction(["articleCollection"], "readwrite")
+    .transaction("articleCollection", "readwrite")
     .objectStore("articleCollection")
-    .add({
+    .put({
       title: article.title,
       content: article.content,
       picsList: article.picsList
@@ -69,7 +71,7 @@ function addArticle(article) {
 
 function getArticle(articleTitle, _this, handle) {
   let request = db
-    .transaction(["articleCollection"])
+    .transaction("articleCollection")
     .objectStore("articleCollection")
     .get(articleTitle);
 
@@ -88,6 +90,25 @@ function getArticle(articleTitle, _this, handle) {
   request.onerror = function(e) {
     console.error("尝试取出文章失败...");
   };
+}
+
+function getAllArticles(_this) {
+  let objStore = db.transaction('articleCollection')
+    .objectStore('articleCollection')
+    _this.items = []
+  let n = 0
+    objStore.openCursor().onsuccess = function (e) {
+      let cursor = e.target.result
+      if (cursor) {
+      n++
+        // _this.$set()
+        _this.items.push({title: cursor.value.title,
+        content: cursor.value.content.slice(0, 50)})
+        cursor.continue()
+      } else {
+        console.log(`保存了${n}篇`)
+      }
+    }
 }
 
 function loadArticle(_this, article) {
@@ -151,7 +172,6 @@ export default {
     delImgInArticle(imgSrc) {
       window.URL.revokeObjectURL(imgSrc);
       let picHash = imgSrc.match(/[a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12}/);
-      console.log(picHash[0]);
       this.input = this.input.replace(
         new RegExp("!\\[Alt .*\\]\\(blob:.*" + picHash[0] + "\\)", "g"),
         ""
@@ -172,9 +192,12 @@ export default {
       };
       eBus.$emit("needPicsList", createArticle);
     },
-    load() {
-      let title = "test";
+    load(title) {
+      this.clrAll()
       getArticle(title, this, loadArticle);
+    },
+    refreshListBoard() {
+      eBus.$emit('sychronizeDB', getAllArticles)
     },
     clrAll() {
       this.title = "";
@@ -190,7 +213,8 @@ export default {
   },
   components: {
     myGallery,
-    uploadBtn
+    uploadBtn,
+    listBoard
   }
 };
 </script>
@@ -253,7 +277,7 @@ input {
 
 button {
   outline: none;
-  color: rgb(0, 0, 0);
+  color: rgba(0, 0, 0, 0);
   background-color: rgba(204, 204, 204, 0.253);
   width: 80px;
   padding: 5px;
@@ -292,5 +316,30 @@ button:hover {
 
 .sidebar:hover {
   left: 0;
+}
+.sidebar:hover >>> button {
+  transition: color 0.3s ease-in-out;
+  color: rgba(0, 0, 0, 1);
+}
+
+.board {
+  z-index: -1;
+  position: fixed;
+  left: 0;
+  bottom:  -500px;
+  transition: bottom 0.3s ease-in-out .3s;
+  background: rgba(204, 204, 204, 0.842)
+}
+.board >>> div:nth-child(2n) {
+  background-color: darkgray
+}
+.board >>> div:nth-child(2n + 1) {
+  background-color: rgb(255, 255, 255)
+}
+.load:hover + .board {
+  bottom: 90px;
+}
+.board:hover {
+  bottom: 90px;
 }
 </style>
