@@ -3,7 +3,7 @@
     <div class="sidebar">
       <button class="save" @click="save">保存文章</button>
       <button class="load" @mouseover="refreshListBoard">恢复文章</button>
-      <list-board @load-article="load"></list-board>
+      <list-board @load-article="load" @del-article="del"></list-board>
       <button class="clrAll" @click="clrAll">全部清除</button>
       <button class="clrGallery" @click="clrGallery">清除画廊</button>
       <button class="clrArticle" @click="clrArticle">清除文章</button>
@@ -33,7 +33,7 @@ import MarkdownIt from "markdown-it";
 const md = new MarkdownIt();
 import myGallery from "./gallery.vue";
 import uploadBtn from "./uploadBtn.vue";
-import listBoard from "./listBoard.vue"
+import listBoard from "./listBoard.vue";
 import eBus from "./eBus.js";
 
 let request = window.indexedDB.open("articles", 1);
@@ -78,7 +78,7 @@ function getArticle(articleTitle, _this, handle) {
   request.onsuccess = function(e) {
     console.log("尝试取出文章成功!");
     if (request.result) {
-      console.log(request.result)
+      console.log(request.result);
       console.log(`标题: \n${request.result.title}
       内容: \n${request.result.content}`);
       //此处已获得文章
@@ -93,41 +93,44 @@ function getArticle(articleTitle, _this, handle) {
 }
 
 function getAllArticles(_this) {
-  let objStore = db.transaction('articleCollection')
-    .objectStore('articleCollection')
-    _this.items = []
-  let n = 0
-    objStore.openCursor().onsuccess = function (e) {
-      let cursor = e.target.result
-      if (cursor) {
-      n++
-        // _this.$set()
-        _this.items.push({title: cursor.value.title,
-        content: cursor.value.content.slice(0, 50)})
-        cursor.continue()
-      } else {
-        console.log(`保存了${n}篇`)
-      }
+  let objStore = db
+    .transaction("articleCollection")
+    .objectStore("articleCollection");
+  _this.items = [];
+  let n = 0;
+  objStore.openCursor().onsuccess = function(e) {
+    let cursor = e.target.result;
+    if (cursor) {
+      n++;
+      // _this.$set()
+      _this.items.push({
+        title: cursor.value.title,
+        content: cursor.value.content.slice(0, 50) + "..."
+      });
+      cursor.continue();
+    } else {
+      console.log(`保存了${n}篇`);
     }
+  };
 }
 
 function loadArticle(_this, article) {
   //gallery还原
   let newPicsList = {};
-  let objectURLMap = {}
+  let objectURLMap = {};
   console.log(article);
-  
+
   for (const key in article.picsList) {
     if (article.picsList.hasOwnProperty(key)) {
       const element = article.picsList[key];
-      let newObjectURL
+      let newObjectURL;
       newObjectURL = URL.createObjectURL(element.blob);
       newPicsList[newObjectURL] = {
         name: element.name,
         blob: element.blob
       };
       //新旧objeURL映射表建立
-      objectURLMap[key] = newObjectURL
+      objectURLMap[key] = newObjectURL;
     }
   }
   eBus.$emit("rebuildPicsList", newPicsList);
@@ -140,13 +143,22 @@ function loadArticle(_this, article) {
     // let oldImg = result[0];
     let oldImgSrc = result[1];
     content = content.replace(
-        new RegExp("!\\[Alt .*\\]\\(" + oldImgSrc + "\\)", "g"),
-        `![Alt ${newPicsList[objectURLMap[oldImgSrc]].name}](${objectURLMap[oldImgSrc]})`
-    )
+      new RegExp("!\\[Alt .*\\]\\(" + oldImgSrc + "\\)", "g"),
+      `![Alt ${newPicsList[objectURLMap[oldImgSrc]].name}](${
+        objectURLMap[oldImgSrc]
+      })`
+    );
   }
-  _this.input = content
+  _this.input = content;
 }
 
+function delArticle(title) {
+  db
+    .transaction("articleCollection", 'readwrite')
+    .objectStore("articleCollection")
+    .delete(title)
+  eBus.$emit("sychronizeDB", getAllArticles);
+}
 export default {
   name: "mdEditor",
   data() {
@@ -193,11 +205,14 @@ export default {
       eBus.$emit("needPicsList", createArticle);
     },
     load(title) {
-      this.clrAll()
+      this.clrAll();
       getArticle(title, this, loadArticle);
     },
+    del(title) {
+      delArticle(title)
+    },
     refreshListBoard() {
-      eBus.$emit('sychronizeDB', getAllArticles)
+      eBus.$emit("sychronizeDB", getAllArticles);
     },
     clrAll() {
       this.title = "";
@@ -249,10 +264,6 @@ textarea {
 
 #preview {
   overflow: auto;
-}
-
-code {
-  color: #f66;
 }
 
 .toolbar {
@@ -326,15 +337,15 @@ button:hover {
   z-index: -1;
   position: fixed;
   left: 0;
-  bottom:  -500px;
-  transition: bottom 0.3s ease-in-out .3s;
-  background: rgba(204, 204, 204, 0.842)
+  bottom: -500px;
+  transition: bottom 0.3s ease-in-out 0.3s;
+  background: rgba(151, 151, 151, 0.842);
 }
-.board >>> div:nth-child(2n) {
-  background-color: darkgray
+.board >>> .item:nth-child(2n) {
+  background-color: rgb(218, 218, 218);
 }
-.board >>> div:nth-child(2n + 1) {
-  background-color: rgb(255, 255, 255)
+.board >>> .item:nth-child(2n + 1) {
+  background-color: rgb(255, 255, 255);
 }
 .load:hover + .board {
   bottom: 90px;
