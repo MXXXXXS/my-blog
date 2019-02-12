@@ -8,7 +8,7 @@
     @mouseleave="endX"
     @dragover.stop.prevent="dragOver"
     @dragleave.stop.prevent="dragLeave"
-    @drop.stop.prevent="addImg"
+    @drop.stop.prevent="inportImg"
   >
     <div class="imgs" :style="{ transform: 'translateX(' + left + 'px)' }">
       <img
@@ -18,14 +18,12 @@
         :alt="value.name"
         :src="src"
         @dblclick="delImg"
-        @click.right="addImg2article"
+        @click.right="addImg"
       >
     </div>
   </div>
 </template>
 <script>
-import eBus from "./eBus.js";
-import Vue from "vue";
 export default {
   name: "myGallery",
   props: {
@@ -33,8 +31,6 @@ export default {
   },
   data() {
     return {
-      //picsList格式: { objectURL: { name: 'sdfsdfm.jpg', blob: xxxx } }
-      picsList: {},
       picsWidth: 0,
       //控制拖曳的css样式
       isActive: false,
@@ -46,6 +42,14 @@ export default {
       lastEScreenX: 0,
       EScreenX: 0
     };
+  },
+  computed: {
+    picsList() {
+      return this.$store.state.picsList
+    },
+    imgsPositionReset() {
+      return this.$store.state.imgsPositionReset
+    }
   },
   watch: {
     left() {
@@ -59,14 +63,13 @@ export default {
     },
     EScreenX() {
       this.left = this.lastLeft + this.EScreenX - this.lastEScreenX;
+    },
+    imgsPositionReset(trueness) {
+      if (trueness) {
+        this.left = 0
+        this.$store.commit('resetIPR')
+      }
     }
-  },
-  created() {
-    //以下为自由编写区
-    eBus.$on("clrGallery", this.clrGallery);
-    eBus.$on("needPicsList", this.sendPicsList);
-    eBus.$on("rebuildPicsList", this.rebuildPicsList);
-    //以上为自由编写区
   },
   methods: {
     initX: function(e) {
@@ -90,53 +93,31 @@ export default {
     dragLeave: function() {
       this.isActive = false;
     },
-    addImg: function(e) {
+    inportImg: function(e) {
       let files = e.dataTransfer.files;
+      let picsListBuffer = {}
       for (let i = 0; i < files.length; i++) {
         if (!files[i].type.match("image.*")) {
           continue;
         }
         let imgLink = window.URL.createObjectURL(files[i]);
-        this.picsList[imgLink] = {
+        picsListBuffer[imgLink] = {
           name: files[i].name,
           blob: files[i]
         };
       }
-      console.log("添加图片\n", this.picsList);
+      this.$store.commit('inportImg', picsListBuffer)
       this.isActive = false;
+      console.log("添加图片\n", this.picsList);
     },
     delImg: function(e) {
-      Vue.delete(this.picsList, e.target.src);
       //以下为自由编写区
-      this.$emit("del-img", e.target.src);
+      this.$store.commit('delImg', e.target.src)
       //以上为自由编写区
-    },
-    clrGallery: function() {
-      //以下为自由编写区
-      this.$emit("del-all-imgs", Object.keys(this.picsList));
-      Object.keys(this.picsList).forEach(key =>
-        window.URL.revokeObjectURL(key)
-      );
-      //以上为自由编写区
-      this.picsList = {};
-      this.left = 0;
     },
     //以下为自由编写区
-    addImg2article: function(e) {
-      this.$emit("add-img2article", { alt: e.target.alt, src: e.target.src });
-    },
-    sendPicsList: function(createArticle) {
-      createArticle(this.picsList);
-    },
-    rebuildPicsList: function(picsList) {
-      
-      console.log("picsList has been rebuilt");
-      for (const key in picsList) {
-        if (picsList.hasOwnProperty(key)) {
-          const element = picsList[key];
-          Vue.set(this.picsList, key, element);
-        }
-      }
+    addImg: function(e) {
+      this.$store.commit("addImg", { alt: e.target.alt, src: e.target.src });
     }
     //以上为自由编写区
   }

@@ -8,10 +8,11 @@ const express = require('express')
 const app = express()
 const JWT = require('jsonwebtoken')
 const formidable = require('formidable')
+
 const rootDir = path.resolve(__dirname, '..')
 const articleDir = rootDir + '/backEnd/articles'
-const AQUAPageDir = rootDir + '/frondEnd/AQUAPage'
-const loginDir = rootDir + '/frondEnd/login'
+const AQUAPageDir = rootDir + '/frontEnd/AQUAPage'
+const loginDir = rootDir + '/frontEnd/login'
 const editorDir = rootDir + '/frontEnd/editor'
 const adminKey = 'mxxxxxs'
 const readFile = file => {

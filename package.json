@@ -1,12 +1,16 @@
 {
-  "name": "editor",
+  "name": "aqua-page",
   "version": "1.0.0",
-  "description": "",
-  "main": "MDEditor.js",
+  "description": "开发中...",
+  "main": "index.js",
   "dependencies": {
-    "lodash": "^4.17.11",
+    "express": "^4.16.3",
+    "formidable": "^1.2.1",
+    "jsonwebtoken": "^8.3.0",
     "markdown-it": "^8.4.2",
-    "vue": "^2.5.17"
+    "mongodb": "^3.1.4",
+    "vue": "^2.5.17",
+    "vuex": "^3.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
@@ -19,10 +23,19 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --watch --config webpack.config.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MXXXXXS/AQUABlogSystem.git"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MXXXXXS/AQUABlogSystem/issues"
+  },
+  "homepage": "https://github.com/MXXXXXS/AQUABlogSystem#readme"
 }

@@ -3,10 +3,10 @@ const path = require('path')
 
 module.exports = {
   mode: "development",
-  entry: './MDEditor.js',
+  entry: './frontEnd/editor/MDEditor.js',
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    path: path.resolve(__dirname, './frontEnd/editor/dist'),
+    filename: 'MDEditor.js'
   },
   module: {
     rules: [{
