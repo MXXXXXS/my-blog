@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import IDB from '../utils/indexDB.js'
-let idb = new IDB('mdEditor', 'title', 'article')
+let idb = new IDB(`mdEditor`, `title`, `article`)
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -10,8 +10,8 @@ const store = new Vuex.Store({
     picsList: {},
     //article格式: {title: 'sffsdf', content: 'sfsdfs', picsList: picsList}
     article: {
-      title: '',
-      content: '',
+      title: ``,
+      content: ``,
       picsList: {}
     },
     //items格式: {title: content}
@@ -35,6 +35,13 @@ const store = new Vuex.Store({
       state.picsList = Object.assign({}, state.picsList, imgs)
     },
     delImg(state, imgSrc) {
+      let content = state.article.content
+      window.URL.revokeObjectURL(imgSrc)
+      content = content.replace(
+        new RegExp(`!\\[Alt .*\\]\\(` + imgSrc + `\\)`, `g`),
+        ``
+      )
+      Vue.set(state.article, `content`, content)
       Vue.delete(state.picsList, imgSrc)
     },
     addImg(state, img) {
@@ -45,20 +52,20 @@ const store = new Vuex.Store({
       Object.keys(state.picsList).forEach(key => {
         window.URL.revokeObjectURL(key)
         content = content.replace(
-          new RegExp("!\\[Alt .*\\]\\(" + key + "\\)", "g"),
+          new RegExp(`!\\[Alt .*\\]\\(` + key + `\\)`, `g`),
           ``
         )
       })
-      Vue.set(state.article, 'content', content)
+      Vue.set(state.article, `content`, content)
       state.picsList = {}
-      store.commit('setIPR')
+      store.commit(`setIPR`)
     },
     clrArticle(state) {
-      Vue.set(state.article, 'title', '')
-      Vue.set(state.article, 'content', '')
+      Vue.set(state.article, `title`, ``)
+      Vue.set(state.article, `content`, ``)
     },
     save(state) {
-      Vue.set(state.article, 'picsList', state.picsList)
+      Vue.set(state.article, `picsList`, state.picsList)
       idb.put(state.article)
         .then(() => {
           console.log(`🎉文章已保存`)
@@ -69,9 +76,9 @@ const store = new Vuex.Store({
     del(state, title) {
       if (title) {
         Vue.delete(state.items, title)
-        console.log('🎉文章删除成功')
+        console.log(`🎉文章删除成功`)
       } else {
-        console.warn('❌文章删除失败')
+        console.warn(`❌文章删除失败`)
       }
     },
     load(state, article) {
@@ -101,7 +108,7 @@ const store = new Vuex.Store({
           let oldImgSrc = result[1]
           let newImgSrc = objectURLMap[oldImgSrc]
           content = content.replace(
-            new RegExp("!\\[Alt .*\\]\\(" + oldImgSrc + "\\)", "g"),
+            new RegExp(`!\\[Alt .*\\]\\(` + oldImgSrc + `\\)`, `g`),
             `![Alt ${newPicsList[newImgSrc].name}](${newImgSrc})`
           )
         }
@@ -111,22 +118,19 @@ const store = new Vuex.Store({
           content: content,
           picsList: newPicsList
         }
-        console.log('🎉文章已加载')
+        console.log(`🎉文章已加载`)
       } else {
-        console.warn('❌文章获取失败')
+        console.warn(`❌文章获取失败`)
       }
     },
     loadAll(state, articles) {
       if (articles) {
-        let maxTitleLength = 10
         let maxContentLength = 20
         articles.forEach(article => {
-          let title = article.title.length < 10 ?
-            article.title :
-            article.title.slice(0, maxTitleLength + 1) + '...'
+          let title = article.title
           let content = article.content.length < 20 ?
             article.content :
-            article.content.slice(0, maxContentLength + 1) + '...'
+            article.content.slice(0, maxContentLength + 1) + `...`
           Vue.set(state.items, title, content)
         })
         console.log(`🎉文章目录已加载`)
@@ -140,17 +144,17 @@ const store = new Vuex.Store({
     async delete({
       commit
     }, title) {
-      commit('del', await idb.delete(title).catch(() => false))
+      commit(`del`, await idb.delete(title).catch(() => false))
     },
     async get({
       commit
     }, title) {
-      commit('load', await idb.get(title).catch(() => false))
+      commit(`load`, await idb.get(title).catch(() => false))
     },
     async getAll({
       commit
     }) {
-      commit('loadAll', await idb.getAll().catch(() => false))
+      commit(`loadAll`, await idb.getAll().catch(() => false))
     }
   }
 })

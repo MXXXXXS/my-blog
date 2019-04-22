@@ -5,4 +5,4 @@ import store from './store/store.js'
 new Vue({
   render: h => h(mdEditor),
   store
-}).$mount('#editor')
+}).$mount(`#editor`)

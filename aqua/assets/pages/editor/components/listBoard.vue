@@ -7,8 +7,8 @@
       @dblclick="del(title)"
       @click.right="get(title)"
     >
-      <p style="height: 40px;margin: 0;">{{title}}</p>
-      <p style="font-size: 12px;margin: 0; color: grey;">{{content}}</p>
+      <p class="title" style="height: 40px;margin: 0;">{{title ? title : title.slice(0, 11) + '...'}}</p>
+      <p class="content" style="font-size: 12px;margin: 0; color: grey;">{{content}}</p>
     </div>
   </div>
 </template>
@@ -39,10 +39,14 @@ export default {
   overflow-y: scroll;
 }
 .item {
-  display: flex;
   width: 100%;
   height: 80px;
 }
+
+.title {
+  height: 75%;
+}
+
 .details {
   width: calc(100% - 40px);
 }

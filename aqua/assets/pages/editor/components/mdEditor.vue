@@ -1,19 +1,15 @@
 <template>
   <div>
     <div class="sidebar">
-      <button class="save" @click="save">保存文章</button>
+      <upload-btn></upload-btn>
       <button class="load" @mouseover="getAll">恢复文章</button>
       <list-board @click.native.right.prevent></list-board>
-      <button class="clrAll" @click="clrAll">全部清除</button>
-      <button class="clrGallery" @click="clrGallery">清除画廊</button>
-      <button class="clrArticle" @click="clrArticle">清除文章</button>
-      <upload-btn></upload-btn>
+      <button class="save" @click="save">保存文章</button>
     </div>
     <div class="toolbar">
       <input type="text" :value="title" @change="changeTitle" placeholder="输入标题">
       <my-gallery @click.native.right.prevent></my-gallery>
     </div>
-    <div class="progress" :style="{ left: progress + '%' }"></div>
     <div class="writing">
       <textarea :value="content" @input="update"></textarea>
       <div id="preview" v-html="compiledMarkdown"></div>
@@ -96,6 +92,10 @@ export default {
 };
 </script>
 <style scoped>
+textarea, input {
+  font: menu;
+}
+
 #editor {
   margin: 0;
   height: 100%;
@@ -110,7 +110,7 @@ export default {
 textarea,
 #preview {
   width: 50%;
-  min-height: calc(100vh - 115px);
+  min-height: calc(100vh - 105px);
   padding: 10px;
   /* overflow-y: scroll; */
 }
@@ -167,13 +167,6 @@ button:hover {
   box-shadow: inset 0 0 10px 4px rgb(173, 219, 104);
 }
 
-.progress {
-  background-color: rgb(173, 219, 104);
-  position: relative;
-  width: 100%;
-  height: 10px;
-}
-
 #preview >>> img {
   max-width: 400px;
   max-height: 300px;
@@ -182,7 +175,7 @@ button:hover {
 .sidebar {
   display: flex;
   position: fixed;
-  left: calc(5 * -80px);
+  left: calc(2 * -80px);
   bottom: 0;
   transition: left 0.3s ease-in-out 1s;
 }

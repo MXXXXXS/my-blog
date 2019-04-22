@@ -5,10 +5,10 @@ export default class IDB {
     request = window.indexedDB.open(DBName, version)
     request.onsuccess = e => {
       this.db = request.result
-      console.log('indexedDB opened')
+      console.log(`indexedDB opened`)
     }
     request.onerror = e => {
-      console.error(`indexedDB opening flailed\n${e}`)
+      console.error(`indexedDB opening flailed\n${e.message}`)
     }
     request.onupgradeneeded = e => {
       this.db = e.target.result
@@ -22,7 +22,7 @@ export default class IDB {
   put(article) {
     return new Promise((res, rej) => {
       let request = this.db
-        .transaction(this.objStoName, 'readwrite')
+        .transaction(this.objStoName, `readwrite`)
         .objectStore(this.objStoName)
         .put(article)
 
@@ -90,7 +90,7 @@ export default class IDB {
   delete(keyPath) {
     return new Promise((res, rej) => {
       let request = this.db
-        .transaction(this.objStoName, 'readwrite')
+        .transaction(this.objStoName, `readwrite`)
         .objectStore(this.objStoName)
         .delete(keyPath)
 

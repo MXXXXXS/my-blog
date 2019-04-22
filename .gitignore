@@ -3,3 +3,5 @@ node_modules/
 articles/
 images/
 bundle.js
+.vs/
+.vscode/
