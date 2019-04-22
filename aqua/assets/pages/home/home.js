@@ -100,7 +100,7 @@ let add = (ele, content) => {
 }
 //命令种类, 及实现
 let options = {
-  clean() {
+  clear() {
     document.querySelector(`#show`).innerHTML = ``
   },
   help() {

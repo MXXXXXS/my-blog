@@ -3,7 +3,7 @@
 </template>
 <script>
 export default {
-  name: 'uploadBtn',
+  name: "uploadBtn",
   data: function() {
     return {
       state: "上传"
@@ -11,7 +11,7 @@ export default {
   },
   computed: {
     picsList() {
-      return this.$store.state.picsList
+      return this.$store.state.picsList;
     },
     content() {
       return this.$store.state.article.content;
@@ -36,7 +36,7 @@ export default {
         let formData = new FormData();
         formData.append("content", this.content);
         formData.append("title", this.title);
-          //文内是否有图片
+        //文内是否有图片
         if (picsHash)
           picsHash.forEach(src => {
             if (picsList.hasOwnProperty(src)) {
@@ -47,20 +47,6 @@ export default {
           });
         formData.append("objectURLNameMap", JSON.stringify(objectURLNameMap));
         //xhr开始
-        function resHandler(responseText) {
-          if (responseText == "Successed") {
-            _this.state = "已上传";
-            let tId = window.setTimeout(() => {
-              window.clearTimeout(time_id);
-              _this.state = "上传";
-            }, 3000);
-          } else if (responseText == "Authorize Failed") {
-            window.location.href = "/login";
-          } else {
-            console.log(responseText);
-            _this.state = "上传失败";
-          }
-        }
         let xhr = new XMLHttpRequest();
         //处理文章上传的进度
         xhr.onprogress = e => {
@@ -72,8 +58,20 @@ export default {
           }
         };
         xhr.onreadystatechange = () => {
-          if (xhr.readyState == 4 && xhr.status == 200) {
-            resHandler(xhr.responseText);
+          if (xhr.readyState == 4 && xhr.status === 201) {
+            _this.state = "已上传";
+            const timer = window.setTimeout(() => {
+              window.clearTimeout(timer);
+              _this.state = "上传";
+            }, 3000);
+          } else if (xhr.readyState === 4 && xhr.status === 401) {
+            window.location.href = "/login";
+          } else if (xhr.readyState === 4 && xhr.status === 403) {
+            console.error(xhr.responseText);
+            _this.state = "上传失败";
+          } else if (xhr.readyState === 4) {
+            console.error(`Some thing wrong, unhandled`);
+            _this.state = "上传失败";
           }
         };
         xhr.open("POST", "/article/" + this.title);
