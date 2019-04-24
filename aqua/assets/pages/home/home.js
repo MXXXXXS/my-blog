@@ -107,7 +107,6 @@ let options = {
     add(`pre`, data.help)
   },
   home() {
-    // document.getElementById('cli').previousSibling.previousSibling.innerHTML = ''
     add(`pre`, data.welcome)
   },
   ls() {
@@ -119,7 +118,6 @@ let options = {
       add(`div`, list)
     }
     req(`get`, `articles`, handler)
-    //TODO: 查看文章列表
   },
   read(article) {
     console.log(`请求文章:` + article)
@@ -128,6 +126,9 @@ let options = {
     }
     req(`get`, `article/` + article + `.md`, handler)
 
+  },
+  upgrade() {
+    window.location.href = `/welcome`
   }
 }
 //ajax请求简单封装
