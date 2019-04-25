@@ -2,7 +2,7 @@
   <div id="sideBar">
     <div id="menu" @click="click"></div>
     <transition name="slide-fade" @after-enter="keepWidth" @before-leave="resetWidth">
-      <div id="list" :class="active" v-show="show">
+      <div id="list" :class="active" v-show="show" :style='{backgroundColor: themeColor}'>
           <p @click="getArticle" class="titles" v-for="title in items" :key="title">{{title}}</p>
       </div>
     </transition>
@@ -18,7 +18,7 @@ let anime;
 
 console.log(menuData);
 export default {
-  props: ["items"],
+  props: ["items", "themeColor"],
   data() {
     return {
       reverse: -1,
@@ -34,9 +34,18 @@ export default {
       autoplay: false,
       path: menuData
     });
+    anime.addEventListener('DOMLoaded', () => {
+      document.querySelectorAll('svg path').forEach(element => {
+        element.style.fill = this.themeColor
+      });
+    })
   },
   watch: {
-    items: function(newVal, oldVal) {}
+    themeColor: function(newVal, oldVal) {
+      document.querySelectorAll('svg path').forEach(element => {
+        element.style.fill = newVal
+      });
+    }
   },
   methods: {
     click: function(e) {
@@ -91,24 +100,27 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transform: translateZ(0);
 }
 
 .active {
-  background-color: rgb(138, 159, 239);
   width: 15vw;
 }
 
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   width: 15vw;
-  background-color: rgb(138, 159, 239);
   transition: width 0.8s cubic-bezier(0.19, 1, 0.22, 1),
-    background-color 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+    opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .slide-fade-enter,
 .slide-fade-leave-to {
   width: 0;
-  background-color: rgba(138, 159, 239, 0);
+  opacity: 0;
+}
+
+svg {
+  fill: currentColor;
 }
 </style>
