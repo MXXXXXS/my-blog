@@ -87,6 +87,7 @@ export default {
 #list {
   position: relative;
   height: 100%;
+  padding-top: 20px;
   left: 50%;
   transform: translate(-50%, 0%);
 }
