@@ -93,7 +93,7 @@ export default {
 }
 
 .titles {
-  margin: 0;
+  margin: 0 10px;
   height: 40px;
   color: white;
   font-size: 16px;

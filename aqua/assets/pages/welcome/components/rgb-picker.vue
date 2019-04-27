@@ -14,9 +14,9 @@ export default {
   props: ["change", "giveRgb", 'recvRgb'],
   data: function() {
     return {
-      r: (Math.random() * 255).toFixed(0),
-      g: (Math.random() * 255).toFixed(0),
-      b: (Math.random() * 255).toFixed(0)
+      r: (Math.random() * 200).toFixed(0),
+      g: (Math.random() * 200).toFixed(0),
+      b: (Math.random() * 200).toFixed(0)
     };
   },
   mounted() {

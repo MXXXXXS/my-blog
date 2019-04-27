@@ -113,11 +113,11 @@ export default {
   width: 256px;
   padding: 10px 5px 10px;
   border-radius: 15px;
-  box-shadow: 0 0 20px grey;
+  box-shadow: 0 0 8px rgb(187, 187, 187);
 }
 .mode {
   text-align: center;
-  color: darkgray;
+  color: rgb(184, 184, 184);
   font-size: 24px;
   cursor: pointer;
 }

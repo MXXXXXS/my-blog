@@ -15,7 +15,7 @@ module.exports = {
     console.log(article)
     fs.readFile(path.resolve(paths.dirs.articles, article), (err, data) => {
       if (err) {
-        res.send(`emmmm, 可能没有一篇叫"${article}"的文章. 参考错误: ${err}`)
+        res.send(`emmmm, 可能没有一篇叫"${article.slice(0, -3)}"的文章`)
         return
       }
       let result = md.render(data.toString())
