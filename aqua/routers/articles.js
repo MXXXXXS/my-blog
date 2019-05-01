@@ -5,7 +5,7 @@ const paths = require(`../config/paths`)
 
 module.exports = {
   GET: (req, res) => {
-    fs.readdir(paths.dirs.articles, (err, files) => {
+    fs.readdir(path.join(paths.dirs.home, `articles`), (err, files) => {
       if (err) {
         res.status(404).send(`读取文章列表居然失败了? 参考错误: ${err}`)
         return

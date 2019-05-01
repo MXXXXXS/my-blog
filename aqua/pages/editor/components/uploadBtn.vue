@@ -2,6 +2,7 @@
   <button @click="upload">{{state}}</button>
 </template>
 <script>
+const {wrap} = require(`../utils/clientSide.js`)
 export default {
   name: "uploadBtn",
   data: function() {
@@ -26,26 +27,9 @@ export default {
         jwt = localStorage.getItem("jwt");
       if (jwt) {
         this.state = "上传中";
-        //收集发送内容
-        let picsHashRegExp = /blob:.*([a-z0-9]{8}(-[a-z0-9]{4}){3}-[a-z0-9]{12})/g,
-          picsHash,
-          picsList = this.picsList,
-          objectURLNameMap = {};
-        picsHash = this.content.match(picsHashRegExp);
-        //构造发送表单
-        let formData = new FormData();
-        formData.append("content", this.content);
-        formData.append("title", this.title);
-        //文内是否有图片
-        if (picsHash)
-          picsHash.forEach(src => {
-            if (picsList.hasOwnProperty(src)) {
-              //核对picsQueue, 过滤无效链接
-              objectURLNameMap[src] = picsList[src].name;
-              formData.append(src, picsList[src].blob, picsList[src].name);
-            }
-          });
-        formData.append("objectURLNameMap", JSON.stringify(objectURLNameMap));
+
+        const formData = wrap(this.content, this.picsList, { title: this.title })
+        
         //xhr开始
         let xhr = new XMLHttpRequest();
         //处理文章上传的进度

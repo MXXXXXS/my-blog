@@ -10,6 +10,7 @@
     "lottie-web": "^5.5.1",
     "markdown-it": "^8.4.2",
     "mongodb": "^3.1.4",
+    "randexp": "^0.5.3",
     "vue": "^2.5.17",
     "vuex": "^3.1.0"
   },

@@ -4,11 +4,11 @@ const path = require(`path`)
 module.exports = {
   mode: `development`,
   entry: {
-    "editor/dist/MDEditor": path.resolve(__dirname, `aqua/assets/pages/editor/MDEditor.js`),
-    "welcome/dist/index": path.resolve(__dirname, `aqua/assets/pages/welcome/index.js`)
+    "editor/dist/MDEditor": path.resolve(__dirname, `aqua/pages/editor/MDEditor.js`),
+    "welcome/dist/index": path.resolve(__dirname, `aqua/pages/welcome/index.js`)
   },
   output: {
-    path: path.resolve(__dirname, `aqua/assets/pages`),
+    path: path.resolve(__dirname, `aqua/pages`),
     filename: `[name].js`
   },
   module: {

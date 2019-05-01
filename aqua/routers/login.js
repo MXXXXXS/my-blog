@@ -1,7 +1,6 @@
 const formidable = require(`formidable`)
 const JWT = require(`jsonwebtoken`)
 
-const paths = require(`../config/paths`)
 const me = require(`../config/me`)
 
 module.exports = {
