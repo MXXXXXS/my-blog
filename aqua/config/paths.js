@@ -10,6 +10,6 @@ module.exports = {
     welcome: path.join(pages, `welcome/dist`)
   },
   files: {
-    login: path.join(pages, `pages/login/login.html`)
+    login: path.join(pages, `login/login.html`)
   }
 }

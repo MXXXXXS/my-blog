@@ -45,7 +45,11 @@ const store = new Vuex.Store({
       Vue.delete(state.picsList, imgSrc)
     },
     addImg(state, img) {
-      state.article.content += `\n\n![Alt ${img.alt}](${img.src})\n\n`
+      // state.article.content += `\n\n![Alt ${img.alt}](${img.src})\n\n`
+      const e = new Event(`input`)
+      const textarea = document.querySelector(`textarea`)
+      textarea.setRangeText(`![Alt ${img.alt}](${img.src})`)
+      textarea.dispatchEvent(e)
     },
     clrGallery(state) {
       let content = state.article.content

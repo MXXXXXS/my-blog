@@ -11,7 +11,7 @@
       <my-gallery @click.native.right.prevent></my-gallery>
     </div>
     <div class="writing">
-      <textarea :value="content" @input="update"></textarea>
+      <textarea @input="update"></textarea>
       <div id="preview" v-html="compiledMarkdown"></div>
     </div>
   </div>
@@ -59,9 +59,8 @@ export default {
   },
   methods: {
     update(e) {
-      let _this = this;
       debounce.debounce(() => {
-        _this.$store.commit("changeContent", e.target.value);
+        this.$store.commit("changeContent", e.target.value);
       }, 100);
     },
     changeTitle(e) {

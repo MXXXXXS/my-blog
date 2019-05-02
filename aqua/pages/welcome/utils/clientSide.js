@@ -1,6 +1,6 @@
 //input:file 上传事件处理, 限制类型为图片, 启用多文件选项
-module.exports.addImgs = function addImgs(event) {
-  const imgs = {}
+module.exports.addImgs = function addImgs(files) {
+  const imgs = []
   ;[].forEach.call(files, file => {
     const imgSrc = URL.createObjectURL(file)
     imgs[imgSrc] = {

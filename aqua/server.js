@@ -16,7 +16,7 @@ app.use(`/editor`, express.static(paths.dirs.editor))
 app.use(`/welcome`, express.static(paths.dirs.welcome))
 
 const server = app.listen(80, () => {
-  const host = `192.168.42.28`
+  const host = `127.0.0.1`
   const port = 80
 
   console.log(`Listening at http://%s:%s`, host, port)

@@ -107,9 +107,14 @@
         </div>
         <div class="func">
           <div class="imgOpt">
-            <input type="url" v-model="imgName" id="imgURL">
+            <input type="url" id="imgURL">
             <div class="add" @click="$el.querySelector('#choseImg').click()">
-              <input type="file" id="choseImg" accept=".jpg,.jpeg,.png,.gif,.bmp" @input="imgChosen">
+              <input
+                type="file"
+                id="choseImg"
+                accept=".jpg, .jpeg, .png, .gif, .bmp"
+                @input="imgChosen"
+              >
               <svg
                 t="1556334873043"
                 class="icon"
@@ -132,20 +137,68 @@
     </div>
 
     <div class="comment" :style="{borderColor: themeColor}">
-      <textarea class="md"></textarea>
-      <div class="mdPre"></div>
+      <textarea class="md" v-model="md"></textarea>
+      <div class="mdPre" v-html="mdPre"></div>
     </div>
     <div class="wordsLimit">---/140</div>
   </div>
 </template>
 <script>
+import MarkdownIt from "markdown-it";
+const md = new MarkdownIt();
+import { wrap, addImgs } from "../utils/clientSide.js";
+import Randexp from "randexp";
+import resizeImg from "../utils/resizeImg.js";
+
+class Debounce {
+  constructor() {
+    this.time = new Date().getTime();
+  }
+  debounce(fn, ms) {
+    window.clearTimeout(this.tId);
+    this.tId = window.setTimeout(() => {
+      fn();
+      window.clearTimeout();
+    }, ms);
+  }
+}
+
+const debounce = new Debounce();
+
 export default {
   props: ["themeColor"],
   data() {
     return {
       offset: "0",
-      imgName: ""
+      imgs: {}, //{name: [base64, false],...}
+      md: ""
     };
+  },
+  computed: {
+    mdPre: function() {
+      let srcmd = this.md;
+      const imgReg = /!\[Alt .*\]\(([\w\d]{2}__.*)\)/g;
+      let result;
+      while ((result = imgReg.exec(srcmd))) {
+        const prefix__name = result[1];
+        if (this.imgs[prefix__name]) {
+          this.imgs[prefix__name][1] = true //使用中的图片, 置true
+          srcmd = srcmd.replace(prefix__name, this.imgs[prefix__name][0]);
+        }
+      }
+      //清理未使用图片, 减小内存占用
+      for (const key in this.imgs) {
+        if (this.imgs.hasOwnProperty(key)) {
+          const element = this.imgs[key];
+          if (!element[1])
+          this.$delete(this.imgs, key)
+          //全部置false, 当下次检验到使用中时再置true
+          this.imgs[key][1] = false
+        }
+      }
+
+      return md.render(srcmd);
+    }
   },
   methods: {
     showOption: function(action) {
@@ -156,9 +209,28 @@ export default {
       this.offset = "0";
     },
     imgChosen: function(e) {
-      const img = e.target.files[0]
-      this.imgName = img.name
-      console.log(img)
+      const prefixReg = /[\w\d]{2}/;
+      const prefix = new Randexp(prefixReg).gen();
+      if (e.target.files[0]) {
+        const image = e.target.files[0];
+        resizeImg(image, 40, 40).then(dataurl => {
+          this.imgs = Object.assign({}, this.imgs, {
+            [prefix + "__" + image.name]: [dataurl, true]
+          });
+          console.log(image);
+          const einput = new Event(`input`);
+          const textarea = document.querySelector(`.md`);
+          textarea.setRangeText(
+            `![Alt ${image.name}](${prefix + "__" + image.name})`
+          );
+          textarea.dispatchEvent(einput);
+        });
+      }
+    },
+    update(e) {
+      debounce.debounce(() => {
+        this.md = e.target.value;
+      }, 100);
     }
   }
 };
@@ -205,14 +277,10 @@ export default {
   display: flex;
 }
 
-
-
 .tools,
 .option {
   transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
-
-
 
 .tools >>> div {
   width: 40px;
@@ -258,8 +326,13 @@ export default {
 
 .mdPre {
   /* margin: 2px; */
-  width: 0;
+  width: 50%;
   height: 200px;
+}
+
+.mdPre >>> img {
+  max-width: 40px;
+  max-height: 40px;
 }
 
 .wordsLimit {
