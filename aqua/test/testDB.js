@@ -1,10 +1,6 @@
-const MongoClient = require(`mongodb`).MongoClient
-
-const url = `mongodb://localhost:27017`
-const name = `aqua`
-const collection = `comments`
-module.exports = (async function () {
-  //insertOne, deleteOne, updateOne, find
+(async function () {
+  const client = await require(`../utils/db`).catch(err => console.err(err))
+  //, deleteOne, updateOne, find
   async function crud(client, dbName, collection, method, args) {
     let result
     if (method === `find`) {
@@ -21,14 +17,9 @@ module.exports = (async function () {
     console.log(`Succed: ` + JSON.stringify(result))
     return result
   }
-
-  async function linkDB(url) {
-    const client = await new MongoClient(url, { useNewUrlParser: true }).connect()
-      .catch(err => {
-        console.error(`连接服务器失败: ${err}`)
-      })
-    return client
-  }
-
-  return await linkDB(url)
+  const collections = await client.db(`aqua`).collections()
+  console.log(collections.map(c => c.collectionName).includs())
+  // client.db.collections()
+  //   .then(result => console.log(result))
+  //   .catch(err => console.err(err))
 })()

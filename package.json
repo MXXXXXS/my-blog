@@ -4,6 +4,7 @@
   "description": "开发中...",
   "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "express": "^4.16.3",
     "formidable": "^1.2.1",
     "jsonwebtoken": "^8.3.0",
@@ -18,14 +19,16 @@
     "@babel/core": "^7.1.2",
     "babel-loader": "^8.0.4",
     "css-loader": "^1.0.1",
+    "nodemon": "^1.19.0",
+    "npm-run-all": "^4.1.5",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
     "webpack": "^4.23.1",
     "webpack-cli": "^3.1.2"
   },
   "scripts": {
-    "start": "node aqua/server.js",
-    "build": "webpack --config webpack.config.js",
+    "start": "npm-run-all -p serve watch",
+    "serve": "nodemon aqua/server.js",
     "watch": "webpack --watch --config webpack.config.js"
   },
   "repository": {

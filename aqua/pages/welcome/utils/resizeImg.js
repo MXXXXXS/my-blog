@@ -4,7 +4,7 @@ module.exports = function (
   targetH,
   toBlob = false,
   keepRatio = true,
-  quality = 0.7,
+  quality = 0.8,
   mimeType = `image/png`
 ) {
   const canvas = document.createElement(`canvas`)

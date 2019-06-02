@@ -67,6 +67,7 @@ export default {
       this.active = "";
     },
     getArticle: function(e) {
+      this.$emit("current-article", e.target.innerHTML)
       this.$emit("get-article", e.target.innerHTML);
     }
   }

@@ -2,33 +2,41 @@
   <div class="whole" :style="{border: '2px solid ' + themeColor}">
     <div class="bar">
       <div class="tools" :style="{top: offset}">
-        <div v-html="icons.emo" id="addEmo" class="tool" @click="showOption('addEmo')"></div>
-        <div v-html="icons.preview" id="preview" class="tool" @click="showOption('preview')"></div>
-        <div v-html="icons.send" id="send" class="tool" @click="showOption('send')"></div>
+        <div v-html="icons.emo" class="addEmo tool" @click="showOption('addEmo')"></div>
+        <div v-html="icons.preview" class="preview tool" @click="preview = !preview"></div>
+        <div v-html="icons.send" class="send tool" @click="send"></div>
       </div>
       <div class="option" :style="{top: offset}">
-        <div v-html="icons.back" id="back" @click="showTools"></div>
+        <div v-html="icons.back" class="back" @click="showTools"></div>
         <div class="emos" @wheel="scrollHori">
-          <div :style="{left: '-' + emosOffset + 'px'}" @click="addEmo">
+          <div :style="{left: '-' + emosOffset + 'px', color: themeColor}" @click="addEmo">
             <span v-for="emo in emos" :key="emo">{{emo}}</span>
           </div>
         </div>
-        <input type="file" id="choseImg" accept=".jpg, .jpeg, .png, .gif, .bmp" @input="imgChosen">
+        <input
+          type="file"
+          id="choseImg"
+          accept=".jpg, .jpeg, .png, .gif, .bmp"
+          @input="imgChosen"
+        >
         <div v-html="icons.folder" class="add" @click="$el.querySelector('#choseImg').click()"></div>
       </div>
     </div>
-
     <div class="comment" :style="{borderColor: themeColor}">
-      <textarea class="md" v-model="md"></textarea>
-      <div class="mdPre" v-html="mdPre"></div>
+      <textarea
+        class="md"
+        v-model="md"
+        v-show="!preview"
+        :style="{backgroundColor: themeColor.replace('rgb', 'rgba').replace(')', ', 0.1)'), color: themeColor}"
+      ></textarea>
+      <div class="mdPre" v-html="mdPre" v-show="preview"></div>
     </div>
-    <div class="wordsLimit">---/140</div>
+    <div class="wordsLimit" :style="{color: themeColor}">{{md.length + '/' + maxWordLenght}}</div>
   </div>
 </template>
 <script>
 import MarkdownIt from "markdown-it";
 const md = new MarkdownIt();
-import { wrap, addImgs } from "../utils/clientSide.js";
 import Randexp from "randexp";
 import resizeImg from "../utils/resizeImg.js";
 import icons from "../assets/icons.js";
@@ -57,16 +65,25 @@ function insert(text) {
 }
 
 export default {
-  props: ["themeColor"],
+  props: ["themeColor", "urlToSend", "article"],
   data() {
     return {
+      maxWordLenght: 120,
+      preview: false,
       icons: icons,
       emos: emos,
       offset: "0",
       emosOffset: 0,
       imgs: {}, //{name: [base64, false],...}
-      md: ""
+      md: "",
+      mdToSend: ""
     };
+  },
+  watch: {
+    md: function(md) {
+      if (md.length > this.maxWordLenght)
+        this.md = md.slice(0, this.maxWordLenght);
+    }
   },
   computed: {
     mdPre: function() {
@@ -77,32 +94,57 @@ export default {
         const prefix_name = result[1];
         if (this.imgs[prefix_name]) {
           this.imgs[prefix_name][1] = true; //使用中的图片, 置true
-          srcmd = srcmd.replace(result[0], `![Alt ${prefix_name.slice(4, -1)}](${this.imgs[prefix_name][0]})`);
+          srcmd = srcmd.replace(
+            result[0],
+            `![Alt ${prefix_name.slice(4, -1)}](${this.imgs[prefix_name][0]})`
+          );
         }
       }
       //清理未使用图片, 减小内存占用
       for (const key in this.imgs) {
         if (this.imgs.hasOwnProperty(key)) {
           const element = this.imgs[key];
-          if (!element[1]) this.$delete(this.imgs, key);
-          //全部置false, 当下次检验到使用中时再置true
-          this.imgs[key][1] = false;
+          if (!element[1]) {
+            this.$delete(this.imgs, key);
+          } else {
+            //全部置false, 当下次检验到使用中时再置true
+            this.imgs[key][1] = false;
+          }
         }
       }
-
+      this.mdToSend = srcmd;
       return md.render(srcmd);
     }
   },
   methods: {
+    send: function() {
+      fetch(this.urlToSend, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: this.mdToSend })
+      })
+        .then(res => {
+          if (res.status !== 201) {
+            console.error("Something wrong: " + res);
+          } else {
+            console.log("Sent succed");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    },
     addEmo: function(e) {
       if (e.target.tagName === "SPAN") {
-        insert(e.target.innerText)
+        insert(e.target.innerText);
       }
     },
     scrollHori: function(e) {
       const width =
         this.$el.querySelector(".emos div").offsetWidth - Math.abs(e.deltaY);
-      this.emosOffset += parseFloat(e.deltaY);
+      this.emosOffset += e.deltaY;
       if (this.emosOffset < 0) {
         this.emosOffset = 0;
       }
@@ -112,7 +154,6 @@ export default {
     },
     showOption: function(action) {
       this.offset = "-40px";
-      // [action]
     },
     showTools: function() {
       this.offset = "0";
@@ -127,7 +168,7 @@ export default {
             [prefix + "_" + image.name]: [dataurl, true]
           });
           console.log(image);
-          insert(`[${prefix + "_" + image.name}]`)
+          insert(`[${prefix + "_" + image.name}]`);
         });
       }
     },
@@ -184,7 +225,7 @@ export default {
 .emos > div {
   width: max-content;
   position: relative;
-  transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+  transition: left 0.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .emos >>> span {
@@ -225,7 +266,7 @@ export default {
 }
 
 .comment {
-  height: calc(100% - 64px);
+  height: 200px;
   display: flex;
   border-style: solid;
   border-width: 2px 0;
@@ -233,16 +274,14 @@ export default {
 
 .md {
   width: 100%;
-  height: 200px;
-  margin: 2px;
   border: none;
   resize: none;
+  font-size: 20px;
 }
 
 .mdPre {
-  /* margin: 2px; */
-  width: 50%;
-  height: 200px;
+  width: 100%;
+  overflow: auto;
 }
 
 .mdPre >>> img {
