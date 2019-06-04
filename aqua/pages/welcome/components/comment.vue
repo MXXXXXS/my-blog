@@ -65,7 +65,7 @@ function insert(text) {
 }
 
 export default {
-  props: ["themeColor", "urlToSend", "article"],
+  props: ["themeColor", "urlToSend", "article", "words"],
   data() {
     return {
       maxWordLenght: 120,
@@ -78,6 +78,9 @@ export default {
       md: "",
       mdToSend: ""
     };
+  },
+  mounted() {
+    this.md += this.words
   },
   watch: {
     md: function(md) {
@@ -130,6 +133,7 @@ export default {
             console.error("Something wrong: " + res);
           } else {
             console.log("Sent succed");
+            this.$emit('sent')
           }
         })
         .catch(err => {

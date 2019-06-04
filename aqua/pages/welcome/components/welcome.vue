@@ -28,7 +28,9 @@
         <div class="article">
           <div class="content" :style="{color: themeColor}" v-html="article"></div>
           <comment
-            :url-to-send="urlToSend"
+            @sent='$refs[`comments`].$emit(`loadMore`, currentArticle, $refs[`comments`].offset + 1)'
+            words=''
+            :url-to-send= "'../comments?target=' + currentArticle + '&article=' + currentArticle"
             :article="currentArticle"
             :theme-color="themeColor"
             class="commentBox"
@@ -38,7 +40,7 @@
       <div id="about">
         <div v-html="icons.people" class="me"></div>
         <div class="intro">
-          <comments :target="currentArticle" :theme-color="themeColor"></comments>
+          <comments ref="comments" v-if="currentArticle" :current-article="currentArticle" :target="currentArticle" :theme-color="themeColor"></comments>
         </div>
       </div>
     </div>
@@ -66,11 +68,6 @@ export default {
       article: "",
       themeColor: "rgb(138, 39, 239)"
     };
-  },
-  computed: {
-    urlToSend: function() {
-      return "../comments?article=" + this.currentArticle;
-    }
   },
   mounted: function() {},
   methods: {
@@ -117,7 +114,7 @@ export default {
     comment,
     comments
   }
-};
+}
 </script>
 <style scoped>
 #contaniner {
