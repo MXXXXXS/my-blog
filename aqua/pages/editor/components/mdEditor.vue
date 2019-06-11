@@ -11,7 +11,7 @@
       <my-gallery @click.native.right.prevent></my-gallery>
     </div>
     <div class="writing">
-      <textarea @input="update"></textarea>
+      <textarea @input="update" :value="content"></textarea>
       <div id="preview" v-html="compiledMarkdown"></div>
     </div>
   </div>

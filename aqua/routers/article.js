@@ -23,6 +23,7 @@ module.exports = {
     })
   },
   POST: async (req, res) => {
+    const db = await require(`../utils/db`).catch(err => console.err(err))
     const decoded = await new Promise((res, rej) => {
       JWT.verify(req.headers.jwt, me.password, (err, decoded) => {
         if (err) {
@@ -35,6 +36,14 @@ module.exports = {
       console.error(`Illegal token: ${err}`)
     })
     if (decoded) {
+      const article = path.basename(req.path)
+      db.createCollection(article)
+        .then(result => {
+          console.log(result)
+        })
+        .catch(err => {
+          console.error(`通过文章名创建collection失败` + err)
+        })
       save(req, res, path.resolve(paths.dirs.home, `articles`), path.resolve(paths.dirs.home, `images`), err => {
         if (err) console.error(err)
       })

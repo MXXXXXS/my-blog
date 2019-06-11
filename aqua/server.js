@@ -11,8 +11,8 @@ app.use(`/login`, express.static(paths.dirs.login))
 app.use(`/editor`, express.static(paths.dirs.editor))
 app.use(`/welcome`, express.static(paths.dirs.welcome))
 
-app.get(`/article/*`, index.article.GET)
 app.get(`/articles`, index.articles.GET)
+app.get(`/article/*`, index.article.GET)
 app.get(`/comments`, index.comments.GET)
 
 app.post(`/login`, index.login.POST)

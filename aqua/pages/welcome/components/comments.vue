@@ -1,51 +1,93 @@
 <template>
   <div>
-    <div v-for="c in commentsList" :key="c.id">
-      <div class="id">{{c.id}}</div>
-      <div class="content">{{c.content}}</div>
-      <button @click="replyTo = c.id">回复</button>
-      <button @click="fetchComments(c.id, c.subComments.length)" v-if="c.hasSubComments">加载回复</button>
+    <div v-for="(c, id) in commentsList" :key="id">
+      <div class="id">{{id}}</div>
+      <button @click="replyTo = id">回复</button>
+      <div class="content" v-html="c.content"></div>
       <comment
-        @sent="fetchComments(c.id, c.subComments.length)"
-        :words="'@' + c.id"
+        @sent="sent"
+        :words="'@' + id + ' '"
         :themeColor="themeColor"
-        :url-to-send="'../comments?target=' + c.id + '&article=' + currentArticle"
-        v-if="c.id === replyTo"
+        :url-to-send="'../comments?target=' + id + '&article=' + currentArticle"
+        v-if="id === replyTo"
       ></comment>
-      <div>
-        <div class="subComments" v-if="c.hasSubComments"></div>
+      <div v-for="(content, subId) in c.subComments" :key="subId">
+        <div class="subId">{{subId}}</div>
+        <button @click="replyTo = subId">回复</button>
+        <div class="subContent" v-html="content"></div>
+        <comment
+          @sent="sent"
+          :words="'@' + subId + ' '"
+          :themeColor="themeColor"
+          :url-to-send="'../comments?target=' + id + '&article=' + currentArticle"
+          v-if="subId === replyTo"
+        ></comment>
       </div>
+      <button
+        @click="fetchComments(id, Object.keys(c.subComments).length)"
+        v-if="c.finished === false"
+      >加载回复</button>
     </div>
     <div class="fetchMore" v-if="!finished" @click="fetchComments(currentArticle, offset)">加载更多</div>
   </div>
 </template>
 <script>
 import comment from "./comment.vue";
+import MarkdownIt from "markdown-it";
+const md = new MarkdownIt();
 
 export default {
   data() {
     return {
       replyTo: "",
-      finished: true,
-      showMore: false,
-      commentsList: []
+      commentsTree: {}
     };
   },
   created: function() {
-    this.$on('loadMore', this.fetchComments)
+    this.fetchComments(this.currentArticle, 0);
+    this.$on("initComments", this.fetchComments);
   },
   watch: {
     currentArticle: function(newVal) {
-      if (newVal)
-      this.fetchComments(newVal, this.offset)
+      console.log(newVal);
+      if (newVal) this.fetchComments(newVal, this.offset);
     }
   },
   computed: {
+    finished: {
+      get: function() {
+        if (this.commentsTree[this.currentArticle]) {
+          return this.commentsTree[this.currentArticle].finished;
+        } else {
+          return true;
+        }
+      },
+      set: function(param) {
+        if (this.commentsTree[this.currentArticle])
+          this.commentsTree[this.currentArticle].finished = param;
+      }
+    },
     offset: function() {
-      return this.commentsList.length
+      if (this.commentsTree[this.currentArticle]) {
+        return Object.keys(this.commentsTree[this.currentArticle].comments)
+          .length;
+      } else {
+        return 0;
+      }
+    },
+    commentsList: function() {
+      if (this.commentsTree[this.currentArticle]) {
+        return this.commentsTree[this.currentArticle].comments;
+      } else {
+        return {};
+      }
     }
   },
   methods: {
+    sent: function() {
+      this.replyTo = "";
+      console.log("子评论发送成功");
+    },
     fetchComments: function(target, offset) {
       fetch(
         `../comments?target=${target}&article=${
@@ -58,26 +100,47 @@ export default {
           })
         }
       )
-        .then(res => {
-          // this.articles = res.json()
-          const json = res.json().catch(err => console.error(err));
-          return json;
-        })
+        .then(res =>
+          res
+            .json()
+            .catch(err => console.error(`Parsing response JSON error: ` + err))
+        )
         .then(json => {
-          console.log(json);
-          this.showMore = !json.finished;
+          console.log(`FetchComments got:` + JSON.stringify(json));
+          //区分文章评论和子评论
           if (target === this.currentArticle) {
-            // json.comments.forEach(c => {
-            //   this.$set(this.commentsList)
-            // });
+            if (this.commentsTree[this.currentArticle] === undefined)
+              this.$set(this.commentsTree, this.currentArticle, {
+                finished: true,
+                comments: {}
+              });
+            //this.finished 指代文章评论是否加载完, 是一个计算属性
             this.finished = json.finished;
-            this.commentsList.push(...json.comments);
+            for (const id in json.comments) {
+              if (json.comments.hasOwnProperty(id)) {
+                const c = json.comments[id];
+                //this.commentsList 也是一个计算属性
+                this.$set(this.commentsList, id, {
+                  content: md.render(c),
+                  subComments: {}
+                });
+              }
+            }
+            Object.keys(this.commentsList).forEach(id => {
+              this.fetchComments(id, 0);
+            });
           } else {
-            this.commentsList[target].push(...json.comments);
+            this.$set(this.commentsList[target], "finished", json.finished);
+            for (const id in json.comments) {
+              if (json.comments.hasOwnProperty(id)) {
+                const content = md.render(json.comments[id]);
+                this.$set(this.commentsList[target].subComments, id, content);
+              }
+            }
           }
         })
         .catch(err => {
-          console.error(err);
+          console.error(`FetcheComments error: ` + err);
         });
     }
   },

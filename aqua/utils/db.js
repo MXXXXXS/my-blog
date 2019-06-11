@@ -27,7 +27,7 @@ module.exports = (async function () {
       .catch(err => {
         console.error(`连接服务器失败: ${err}`)
       })
-    return client
+    return await client.db(`aqua`)
   }
 
   return await linkDB(url)

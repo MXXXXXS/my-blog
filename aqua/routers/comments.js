@@ -7,8 +7,8 @@ module.exports = {
     //评论存数据库
     console.log(target, article, content)
     // db.add(target, content)
-    const client = await require(`../utils/db`).catch(err => console.err(err))
-    const db = await client.db(`aqua`)
+    const db = await require(`../utils/db`).catch(err => console.err(err))
+    // const db = await client.db(`aqua`)
     if (target && article) {
       if (target != article) {
         await db.collection(article).findOneAndUpdate({ id: target }, {
@@ -47,9 +47,10 @@ module.exports = {
     const article = req.query.article
     const offset = parseInt(req.query.offset)
     console.log(target, article, offset)
-    const client = await require(`../utils/db`).catch(err => console.err(err))
-    const db = await client.db(`aqua`)
+    const db = await require(`../utils/db`).catch(err => console.err(err))
+    // const db = await client.db(`aqua`)
     if (target && article && offset !== undefined) {
+      //区分文章评论和子评论
       if (target === article) {
         const commentsLen = await db.collection(article).count()
         const comments = await db.collection(article).find({}, {
@@ -60,32 +61,39 @@ module.exports = {
           .catch(err => {
             console.error(`评论获取失败: ${err}`)
           })
-        console.log(comments)
+        console.log(`文章评论获得: ` + comments)
         let finished = true
         if (offset + maxLimit < commentsLen) {
           finished = false
         }
-        res.status(200).send(JSON.stringify({
-          finished: finished,
-          comments: comments.map(c => ({
-            id: c.id,
-            content: c.content,
-            subComments: c.subComments
-          }))
-        }))
+
+        const reply = {
+          finished: true,
+          comments: {}
+        }
+        reply.finished = finished
+        comments.forEach(c => {
+          reply.comments[c.id] = c.content
+        })
+        res.status(200).send(JSON.stringify(reply))
       } else {
         const comments = await db.collection(article).findOne({ id: target }, {
           projection: { subComments: { $slice: [offset, maxLimit] } }
         })
-        console.log(comments)
+        console.log(`子评论获得: ` + comments)
         let finished = true
         if (offset + maxLimit < comments.subLength) {
           finished = false
         }
-        res.status(200).send(JSON.stringify({
-          finished: finished,
-          comments: comments.subComments
-        }))
+        const reply = {
+          finished: true,
+          comments: {}
+        }
+        reply.finished = finished
+        comments.subComments.forEach(c => {
+          reply.comments[c.id] = c.content
+        })
+        res.status(200).send(JSON.stringify(reply))
       }
     }
 

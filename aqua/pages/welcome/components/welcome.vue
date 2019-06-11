@@ -28,9 +28,9 @@
         <div class="article">
           <div class="content" :style="{color: themeColor}" v-html="article"></div>
           <comment
-            @sent='$refs[`comments`].$emit(`loadMore`, currentArticle, $refs[`comments`].offset + 1)'
-            words=''
-            :url-to-send= "'../comments?target=' + currentArticle + '&article=' + currentArticle"
+            @sent="sent"
+            words
+            :url-to-send="'../comments?target=' + currentArticle + '&article=' + currentArticle"
             :article="currentArticle"
             :theme-color="themeColor"
             class="commentBox"
@@ -40,7 +40,13 @@
       <div id="about">
         <div v-html="icons.people" class="me"></div>
         <div class="intro">
-          <comments ref="comments" v-if="currentArticle" :current-article="currentArticle" :target="currentArticle" :theme-color="themeColor"></comments>
+          <comments
+            ref="comments"
+            v-if="currentArticle"
+            :current-article="currentArticle"
+            :target="currentArticle"
+            :theme-color="themeColor"
+          ></comments>
         </div>
       </div>
     </div>
@@ -71,6 +77,9 @@ export default {
   },
   mounted: function() {},
   methods: {
+    sent: function() {
+      this.$refs[`comments`].$emit(`initComments`, this.currentArticle, this.$refs[`comments`].offset)
+    },
     setCurrentArticle: function(currentArticle) {
       this.currentArticle = currentArticle;
     },
@@ -114,7 +123,7 @@ export default {
     comment,
     comments
   }
-}
+};
 </script>
 <style scoped>
 #contaniner {

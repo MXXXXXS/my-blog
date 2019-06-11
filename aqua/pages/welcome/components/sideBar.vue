@@ -3,7 +3,7 @@
     <div id="menu" @click="click"></div>
     <transition name="slide-fade" @after-enter="keepWidth" @before-leave="resetWidth">
       <div id="list" :class="active" v-show="show" :style='{backgroundColor: themeColor}'>
-          <p @click="getArticle" class="titles" v-for="title in items" :key="title">{{title}}</p>
+          <p @click="getArticle" class="titles" :class="{chosen: currentItem === title}" v-for="title in items" :key="title">{{title}}</p>
       </div>
     </transition>
   </div>
@@ -23,8 +23,11 @@ export default {
     return {
       reverse: -1,
       show: 0,
-      active: ""
+      active: '',
+      currentItem: ''
     };
+  },
+  computed: {
   },
   mounted: function() {
     anime = lottie.loadAnimation({
@@ -67,6 +70,7 @@ export default {
       this.active = "";
     },
     getArticle: function(e) {
+      this.currentItem = e.target.innerHTML
       this.$emit("current-article", e.target.innerHTML)
       this.$emit("get-article", e.target.innerHTML);
     }
@@ -88,17 +92,20 @@ export default {
 #list {
   position: relative;
   height: 100%;
-  padding-top: 20px;
+  /* 此处比较魔法, 必须有一个很小的值来显示虚线边框(当第一篇文章被选中, 上方虚线的显示 */
+  padding-top: 0.1px;
   left: 50%;
   transform: translate(-50%, 0%);
 }
 
 .titles {
-  margin: 0 10px;
+  cursor: pointer;
+  margin: 2px;
+  padding: 0 10px;
   height: 40px;
   color: white;
   font-size: 16px;
-  line-height: 100%;
+  line-height: 40px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -124,5 +131,9 @@ export default {
 
 svg {
   fill: currentColor;
+}
+
+.chosen {
+  outline: 2px dashed white;
 }
 </style>

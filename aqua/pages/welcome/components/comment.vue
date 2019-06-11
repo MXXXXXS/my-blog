@@ -2,24 +2,19 @@
   <div class="whole" :style="{border: '2px solid ' + themeColor}">
     <div class="bar">
       <div class="tools" :style="{top: offset}">
-        <div v-html="icons.emo" class="addEmo tool" @click="showOption('addEmo')"></div>
-        <div v-html="icons.preview" class="preview tool" @click="preview = !preview"></div>
-        <div v-html="icons.send" class="send tool" @click="send"></div>
+        <div :style="{fill: themeColor}" v-html="icons.emo" class="addEmo tool" @click="showOption('addEmo')"></div>
+        <div :style="{fill: themeColor}" v-html="icons.preview" class="preview tool" @click="preview = !preview"></div>
+        <div :style="{fill: themeColor}" v-html="icons.send" class="send tool" @click="send"></div>
       </div>
       <div class="option" :style="{top: offset}">
-        <div v-html="icons.back" class="back" @click="showTools"></div>
+        <div :style="{fill: themeColor}" v-html="icons.back" class="back" @click="showTools"></div>
         <div class="emos" @wheel="scrollHori">
           <div :style="{left: '-' + emosOffset + 'px', color: themeColor}" @click="addEmo">
             <span v-for="emo in emos" :key="emo">{{emo}}</span>
           </div>
         </div>
-        <input
-          type="file"
-          id="choseImg"
-          accept=".jpg, .jpeg, .png, .gif, .bmp"
-          @input="imgChosen"
-        >
-        <div v-html="icons.folder" class="add" @click="$el.querySelector('#choseImg').click()"></div>
+        <input type="file" id="choseImg" accept=".jpg, .jpeg, .png, .gif, .bmp" @input="imgChosen">
+        <div :style="{fill: themeColor}" v-html="icons.folder" class="add" @click="$el.querySelector('#choseImg').click()"></div>
       </div>
     </div>
     <div class="comment" :style="{borderColor: themeColor}">
@@ -29,7 +24,7 @@
         v-show="!preview"
         :style="{backgroundColor: themeColor.replace('rgb', 'rgba').replace(')', ', 0.1)'), color: themeColor}"
       ></textarea>
-      <div class="mdPre" v-html="mdPre" v-show="preview"></div>
+      <div :style="{fill: themeColor}" class="mdPre" v-html="mdPre" v-show="preview"></div>
     </div>
     <div class="wordsLimit" :style="{color: themeColor}">{{md.length + '/' + maxWordLenght}}</div>
   </div>
@@ -80,13 +75,13 @@ export default {
     };
   },
   mounted() {
-    this.md += this.words
+    this.md += this.words;
   },
   watch: {
     md: function(md) {
       if (md.length > this.maxWordLenght)
         this.md = md.slice(0, this.maxWordLenght);
-    }
+    },
   },
   computed: {
     mdPre: function() {
@@ -124,7 +119,7 @@ export default {
       fetch(this.urlToSend, {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ content: this.mdToSend })
       })
@@ -133,7 +128,8 @@ export default {
             console.error("Something wrong: " + res);
           } else {
             console.log("Sent succed");
-            this.$emit('sent')
+            this.md = ''
+            this.$emit("sent");
           }
         })
         .catch(err => {
