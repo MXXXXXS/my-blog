@@ -2,8 +2,18 @@
   <div class="whole" :style="{border: '2px solid ' + themeColor}">
     <div class="bar">
       <div class="tools" :style="{top: offset}">
-        <div :style="{fill: themeColor}" v-html="icons.emo" class="addEmo tool" @click="showOption('addEmo')"></div>
-        <div :style="{fill: themeColor}" v-html="icons.preview" class="preview tool" @click="preview = !preview"></div>
+        <div
+          :style="{fill: themeColor}"
+          v-html="icons.emo"
+          class="addEmo tool"
+          @click="showOption('addEmo')"
+        ></div>
+        <div
+          :style="{fill: themeColor}"
+          v-html="icons.preview"
+          class="preview tool"
+          @click="preview = !preview"
+        ></div>
         <div :style="{fill: themeColor}" v-html="icons.send" class="send tool" @click="send"></div>
       </div>
       <div class="option" :style="{top: offset}">
@@ -14,7 +24,12 @@
           </div>
         </div>
         <input type="file" id="choseImg" accept=".jpg, .jpeg, .png, .gif, .bmp" @input="imgChosen">
-        <div :style="{fill: themeColor}" v-html="icons.folder" class="add" @click="$el.querySelector('#choseImg').click()"></div>
+        <div
+          :style="{fill: themeColor}"
+          v-html="icons.folder"
+          class="add"
+          @click="$el.querySelector('#choseImg').click()"
+        ></div>
       </div>
     </div>
     <div class="comment" :style="{borderColor: themeColor}">
@@ -52,13 +67,6 @@ class Debounce {
 
 const debounce = new Debounce();
 
-function insert(text) {
-  const einput = new Event(`input`);
-  const textarea = document.querySelector(`.md`);
-  textarea.setRangeText(text);
-  textarea.dispatchEvent(einput);
-}
-
 export default {
   props: ["themeColor", "urlToSend", "article", "words"],
   data() {
@@ -81,7 +89,7 @@ export default {
     md: function(md) {
       if (md.length > this.maxWordLenght)
         this.md = md.slice(0, this.maxWordLenght);
-    },
+    }
   },
   computed: {
     mdPre: function() {
@@ -115,6 +123,12 @@ export default {
     }
   },
   methods: {
+    insert: function() {
+      const einput = new Event(`input`);
+      const textarea = this.$el.querySelector(`.md`);
+      textarea.setRangeText(text);
+      textarea.dispatchEvent(einput);
+    },
     send: function() {
       fetch(this.urlToSend, {
         method: "POST",
@@ -128,7 +142,7 @@ export default {
             console.error("Something wrong: " + res);
           } else {
             console.log("Sent succed");
-            this.md = ''
+            this.md = "";
             this.$emit("sent");
           }
         })
@@ -138,7 +152,7 @@ export default {
     },
     addEmo: function(e) {
       if (e.target.tagName === "SPAN") {
-        insert(e.target.innerText);
+        this.insert(e.target.innerText);
       }
     },
     scrollHori: function(e) {
@@ -168,7 +182,7 @@ export default {
             [prefix + "_" + image.name]: [dataurl, true]
           });
           console.log(image);
-          insert(`[${prefix + "_" + image.name}]`);
+          this.insert(`[${prefix + "_" + image.name}]`);
         });
       }
     },
