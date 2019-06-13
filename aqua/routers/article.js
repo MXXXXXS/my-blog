@@ -12,14 +12,13 @@ const save = require(`../utils/serverSide`)
 module.exports = {
   GET: (req, res) => {
     const article = decodeURI(path.basename(req.path))
-    console.log(article)
-    fs.readFile(path.join(paths.dirs.home, `articles`, article), (err, data) => {
+    fs.readFile(path.join(paths.dirs.assets.articles, article), (err, data) => {
       if (err) {
-        res.send(`emmmm, 可能没有一篇叫"${article.slice(0, -3)}"的文章`)
-        return
+        res.send(`emmmm, 没有一篇类似"${article.slice(0, -3)}"...的文章`)
+      } else {
+        let result = md.render(data.toString())
+        res.send(result)
       }
-      let result = md.render(data.toString())
-      res.send(result)
     })
   },
   POST: async (req, res) => {
@@ -36,7 +35,7 @@ module.exports = {
       console.error(`Illegal token: ${err}`)
     })
     if (decoded) {
-      const article = path.basename(req.path)
+      const article = decodeURI(path.basename(req.path))
       db.createCollection(article)
         .then(result => {
           console.log(result)
@@ -44,7 +43,7 @@ module.exports = {
         .catch(err => {
           console.error(`通过文章名创建collection失败` + err)
         })
-      save(req, res, path.resolve(paths.dirs.home, `articles`), path.resolve(paths.dirs.home, `images`), err => {
+      save(req, res, path.resolve(paths.dirs.assets.articles), path.resolve(paths.dirs.assets.images), err => {
         if (err) console.error(err)
       })
     } else {

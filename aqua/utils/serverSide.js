@@ -114,6 +114,7 @@ module.exports = function (req, res, mdDir, imgDir, cb) {
           //文章内的链接地址修改
           const articlePath = path.resolve(mdDir, info.title)
           const imgPath = path.resolve(imgDir, prefix + `_` + img.name)
+          console.log(abs2rel(imgPath, articlePath)[0], abs2rel(imgPath, articlePath)[1])
           article = article.replace(imgSrc, abs2rel(articlePath, imgPath)[1])
         } else {
           cb(new Error(`图片改名与文内链接修改失败, 因为files的key格式不是Object URL`), req, res)

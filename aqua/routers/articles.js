@@ -5,13 +5,14 @@ const paths = require(`../config/paths`)
 
 module.exports = {
   GET: (req, res) => {
-    fs.readdir(path.join(paths.dirs.home, `articles`), (err, files) => {
+    fs.readdir(path.join(paths.dirs.assets.articles), (err, files) => {
       if (err) {
         res.status(404).send(`读取文章列表居然失败了? 参考错误: ${err}`)
-        return
+      } else {
+        //.gitignore is used to keep the folder with no content
+        files = files.map(file => path.basename(file, `.md`)).filter(article => article !== `.gitignore` && article !== `images`)
+        res.send(JSON.stringify(files))
       }
-      files = files.map(file => path.basename(file, `.md`))
-      res.send(JSON.stringify(files))
     })
   }
 }

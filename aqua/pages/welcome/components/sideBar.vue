@@ -22,12 +22,10 @@ export default {
   data() {
     return {
       reverse: -1,
-      show: 0,
+      show: false,
       active: '',
       currentItem: ''
     };
-  },
-  computed: {
   },
   mounted: function() {
     anime = lottie.loadAnimation({
@@ -54,9 +52,9 @@ export default {
     click: function(e) {
       if (this.reverse === -1) {
         this.$emit("get-articles");
-        this.show = 1;
+        this.show = true;
       } else {
-        this.show = 0;
+        this.show = false;
       }
       anime.play();
       anime.setDirection(
