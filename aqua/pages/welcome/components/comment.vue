@@ -123,7 +123,7 @@ export default {
     }
   },
   methods: {
-    insert: function() {
+    insert: function(text) {
       const einput = new Event(`input`);
       const textarea = this.$el.querySelector(`.md`);
       textarea.setRangeText(text);
