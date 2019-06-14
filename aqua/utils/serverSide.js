@@ -26,6 +26,8 @@
 //Fields
 //{"info": {title: "test"}, "md":"markdown....."}
 
+const abs2rel = require(`./abs2rel`)
+
 module.exports = function (req, res, mdDir, imgDir, cb) {
   const path = require(`path`)
   const fs = require(`fs`)
@@ -37,59 +39,6 @@ module.exports = function (req, res, mdDir, imgDir, cb) {
   const form = new formidable.IncomingForm()
   form.uploadDir = imgDir
   form.keepExtensions = true
-
-  //两个绝对路径转成两个各自相对的相对路径
-  function abs2rel(path0, path1) {
-    const p0 = split(path.normalize(path0), path.sep)
-    const p1 = split(path.normalize(path1), path.sep)
-    let pp = p0.length >= p1.length ? [p0, p1] : [p1, p0]
-    let np0 = [], np1 = []
-    let i = 0, firstDiff = false
-    for (; i < pp[1].length; i++) {
-      if (pp[0][i] !== pp[1][i]) {
-        if (!firstDiff) {
-          np0.push(pp[0][i])
-          np1.push(pp[1][i])
-          firstDiff = true
-        } else {
-          np0.unshift(`..`)
-          np0.push(pp[0][i])
-          np1.unshift(`..`)
-          np1.push(pp[1][i])
-        }
-      }
-    }
-    for (; i < pp[0].length; i++) {
-      if (!firstDiff) {
-        np0.push(pp[0][i])
-        firstDiff = true
-      } else {
-        np0.unshift(`..`)
-        np0.push(pp[0][i])
-      }
-    }
-    np0 = np0.join(path.sep)
-    np1 = np1.join(path.sep)
-    return [np0, np1]
-  }
-
-  //解决中文字符使用string.split失败的问题
-  function split(string, sep) {
-    let result = []
-    let bufStr = ``
-    for (let i = 0; i < string.length; i++) {
-      const word = string[i]
-      if (word !== sep) {
-        bufStr += word
-      } else {
-        result.push(bufStr)
-        bufStr = ``
-      }
-      if (i === string.length - 1)
-        result.push(bufStr)
-    }
-    return result
-  }
 
   form.parse(req, (err, fields, files) => {
     if (err) throw err
