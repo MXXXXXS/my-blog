@@ -39,15 +39,14 @@
       </div>
       <div id="about">
         <div v-html="icons.people" class="me"></div>
-        <div class="intro">
-          <comments
-            ref="comments"
-            v-if="currentArticle"
-            :current-article="currentArticle"
-            :target="currentArticle"
-            :theme-color="themeColor"
-          ></comments>
-        </div>
+        <comments
+          class="intro"
+          ref="comments"
+          v-if="currentArticle"
+          :current-article="currentArticle"
+          :target="currentArticle"
+          :theme-color="themeColor"
+        ></comments>
       </div>
     </div>
   </div>
@@ -78,7 +77,11 @@ export default {
   mounted: function() {},
   methods: {
     sent: function() {
-      this.$refs[`comments`].$emit(`initComments`, this.currentArticle, this.$refs[`comments`].offset)
+      this.$refs[`comments`].$emit(
+        `initComments`,
+        this.currentArticle,
+        this.$refs[`comments`].offset
+      );
     },
     setCurrentArticle: function(currentArticle) {
       this.currentArticle = currentArticle;
@@ -126,7 +129,7 @@ export default {
 };
 </script>
 <style scoped>
-#contaniner {
+#container {
   position: relative;
   height: 100vh;
 }
@@ -140,9 +143,7 @@ export default {
 }
 
 #content {
-  position: absolute;
   width: 100vw;
-  height: calc(100vh - 40px);
   display: flex;
   justify-content: center;
 }
@@ -228,6 +229,8 @@ h1 {
   transform: rotateY(0deg);
 }
 
-/* .commentBox {
-} */
+.intro {
+  overflow-y: auto;
+  height: calc(100vh - 40px);
+}
 </style>

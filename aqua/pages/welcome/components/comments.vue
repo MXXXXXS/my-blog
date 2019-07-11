@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <div v-for="(c, id) in commentsList" :key="id">
-      <div class="id">{{id}}</div>
-      <button @click="replyTo = id">回复</button>
-      <div class="content" v-html="c.content"></div>
+  <div id="main">
+    <div class="articleComments" v-for="(c, id) in commentsList" :key="id">
+      <div class="id"  :style="{color: themeColor}">{{id}}</div>
+      <button @click="replyTo = id" :style="{color: themeColor}">回复</button>
+      <div class="content" :style="{color: themeColor}" v-html="c.content"></div>
       <comment
         @sent="sent"
         :words="'@' + id + ' '"
@@ -11,10 +11,10 @@
         :url-to-send="'../comments?target=' + id + '&article=' + currentArticle"
         v-if="id === replyTo"
       ></comment>
-      <div v-for="(content, subId) in c.subComments" :key="subId">
-        <div class="subId">{{subId}}</div>
-        <button @click="replyTo = subId">回复</button>
-        <div class="subContent" v-html="content"></div>
+      <div class="subComments" v-for="(content, subId) in c.subComments" :key="subId">
+        <div class="subId"  :style="{color: themeColor}">{{subId}}</div>
+        <button @click="replyTo = subId" :style="{color: themeColor}">回复</button>
+        <div class="subContent" :style="{color: themeColor}" v-html="content"></div>
         <comment
           @sent="sent"
           :words="'@' + subId + ' '"
@@ -26,6 +26,7 @@
       <button
         @click="fetchComments(id, Object.keys(c.subComments).length)"
         v-if="c.finished === false"
+        :style="{color: themeColor}"
       >加载回复</button>
     </div>
     <div class="fetchMore" v-if="!finished" @click="fetchComments(currentArticle, offset)">加载更多</div>
@@ -152,4 +153,14 @@ export default {
 };
 </script>
 <style scoped>
+.articleComments {
+ border: 2px dashed black;
+}
+
+.subComments {
+ border: 2px dashed rgb(245, 111, 34);
+ width: 90%;
+ position: relative;
+ left: calc(10% - 2px);
+}
 </style>
