@@ -89,7 +89,8 @@ export default {
 }
 #list {
   position: relative;
-  height: 100%;
+  height: calc(100vh - 40px);
+  overflow-y: auto;
   /* 此处比较魔法, 必须有一个很小的值来显示虚线边框(当第一篇文章被选中, 上方虚线的显示 */
   padding-top: 0.1px;
   left: 50%;

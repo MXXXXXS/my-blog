@@ -156,7 +156,7 @@ export default {
 }
 
 .article {
-  height: calc(100% - 40px);
+  height: calc(100vh - 72px);
   overflow-y: auto;
   padding: 16px;
   display: flex;

@@ -199,7 +199,7 @@ export default {
   max-width: 500px;
   min-width: 200px;
   width: 70%;
-  /* height: 200px; */
+  min-height: 200px;
   max-height: 500px;
   border-radius: 10px;
   overflow: hidden;
