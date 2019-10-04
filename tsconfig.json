@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "newLine": "CRLF",
+    "removeComments": true,
+    "rootDir": "aqua",
+    "target": "es5",
+    "allowJs": false,
+    "strict": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "aqua/pages/home/*"
+  ],
+  "compileOnSave": true
+}
